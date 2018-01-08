@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QString>
 #include <QMutex>
+#include <QImage>
 
 class RSFrameGeneratorWorker : public QObject
 {
@@ -20,10 +21,13 @@ private:
     rs2::pipeline *m_pipe;
     rs2::frame_queue *m_queue;
 
+    QImage frameToQImage(const rs2::frame &f);
+
 public slots:
     void doWork();
 
 signals:
+    void newImage(QImage image);
     void stopped();
     void errorOccurred(const QString &error);
 };

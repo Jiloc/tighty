@@ -26,7 +26,7 @@ RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
             &m_processor, &RSFrameProcessorWorker::doWork);
 
 
-    connect(&m_processor, &RSFrameProcessorWorker::newImage,
+    connect(&m_generator, &RSFrameGeneratorWorker::newImage,
             this, &RSCameraPrivate::onNewImage,
             Qt::ConnectionType::QueuedConnection);
 

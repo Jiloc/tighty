@@ -6,8 +6,8 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/passthrough.h>
 
+#include <QObject>
 #include <QString>
-#include <QImage>
 #include <QMutex>
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
@@ -27,14 +27,12 @@ private:
     rs2::frame_queue *m_queue;
     rs2::pointcloud m_pc;
 
-    QImage frameToQImage(const rs2::frame &f);
     pcl_ptr pointsToPcl(const rs2::points &points);
 
 public slots:
     void doWork();
 
 signals:
-    void newImage(QImage image);
     void stopped();
     void errorOccurred(const QString &error);
 };
