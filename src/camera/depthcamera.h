@@ -21,6 +21,8 @@ public:
 public slots:
     virtual void start() = 0;
     virtual void stop() = 0;
+//    virtual void record() = 0;
+//    virtual bool reconstruct(const QString& filename) = 0;
 
 signals:
     void newImage(QImage image);

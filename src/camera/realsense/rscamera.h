@@ -22,6 +22,7 @@ public:
     // start and stop are slots
     void start() override;
     void stop() override;
+
 };
 
 #endif // RSCAMERA_H

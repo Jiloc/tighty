@@ -4,9 +4,12 @@
 
 const std::string NO_CAMERA_MESSAGE = "No camera connected, please connect 1 or more";
 
+const unsigned int FRAME_QUEUE_SIZE = 5;
+
 RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
     q_ptr(camera),
-    m_worker(&m_pipe)
+    m_generator(&m_pipe, &m_queue),
+    m_processor(&m_pipe, &m_queue)
 {
     connect(&m_cameraManager, &RSCameraManager::cameraConnected,
             this, &RSCameraPrivate::onCameraConnected);
@@ -14,29 +17,39 @@ RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
             this, &RSCameraPrivate::onCameraDisconnected);
     m_cameraManager.setup();
 
-    m_worker.moveToThread(&m_workerThread);
+    m_generator.moveToThread(&m_generatorThread);
+    m_processor.moveToThread(&m_processorThread);
 
     connect(this, &RSCameraPrivate::started,
-            &m_worker, &RSImageGeneratorWorker::doWork);
+            &m_generator, &RSFrameGeneratorWorker::doWork);
+    connect(this, &RSCameraPrivate::started,
+            &m_processor, &RSFrameProcessorWorker::doWork);
 
-    connect(&m_worker, &RSImageGeneratorWorker::newImage,
+
+    connect(&m_processor, &RSFrameProcessorWorker::newImage,
             this, &RSCameraPrivate::onNewImage,
             Qt::ConnectionType::QueuedConnection);
 
-    connect(&m_worker, &RSImageGeneratorWorker::stopped,
+    connect(&m_generator, &RSFrameGeneratorWorker::stopped,
             this, &RSCameraPrivate::_stop);
 
-    connect(&m_worker, &RSImageGeneratorWorker::errorOccurred,
+
+    connect(&m_generator, &RSFrameGeneratorWorker::errorOccurred,
+            this, &RSCameraPrivate::onErrorOccurred);
+    connect(&m_processor, &RSFrameProcessorWorker::errorOccurred,
             this, &RSCameraPrivate::onErrorOccurred);
 
-    m_workerThread.start();
+    m_generatorThread.start();
+    m_processorThread.start();
 }
 
 
 RSCameraPrivate::~RSCameraPrivate()
 {
-    m_workerThread.quit();
-    m_workerThread.wait();
+    m_generatorThread.quit();
+    m_generatorThread.wait();
+    m_processorThread.quit();
+    m_processorThread.wait();
 }
 
 void RSCameraPrivate::start()
@@ -49,7 +62,8 @@ void RSCameraPrivate::start()
 
 void RSCameraPrivate::stop()
 {
-    m_worker.stop();
+    m_generator.stop();
+    m_processor.stop();
 }
 
 void RSCameraPrivate::_stop()
@@ -57,6 +71,7 @@ void RSCameraPrivate::_stop()
     qDebug() << "stop pipe";
     Q_Q(RSCamera);
     m_pipe.stop();
+    qDebug() << "after pipe stop";
     q->setIsScanning(false);
 }
 
@@ -72,7 +87,7 @@ void RSCameraPrivate::onCameraConnected(const QString &serialNumber)
     Q_Q(RSCamera);
     if (serialNumber == q->m_serialNumber)
     {
-        m_config.enable_stream(RS2_STREAM_DEPTH);
+//        m_config.enable_stream(RS2_STREAM_DEPTH);
         m_config.enable_device(serialNumber.toStdString());
         q->setIsConnected(true);
     }

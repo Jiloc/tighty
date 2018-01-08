@@ -4,7 +4,8 @@
 #include <librealsense2/rs.hpp>
 
 #include "rscameramanager.h"
-#include "rsimagegeneratorworker.h"
+#include "rsframegeneratorworker.h"
+#include "rsframeprocessorworker.h"
 #include "rscamera.h"
 
 #include <QThread>
@@ -17,12 +18,14 @@ class RSCameraPrivate: public QObject
     RSCamera * const q_ptr;
 
     rs2::pipeline m_pipe;
+    rs2::frame_queue m_queue;
     rs2::config m_config;
-
     RSCameraManager m_cameraManager;
 
-    RSImageGeneratorWorker m_worker;
-    QThread m_workerThread;
+    RSFrameGeneratorWorker m_generator;
+    RSFrameProcessorWorker m_processor;
+    QThread m_generatorThread;
+    QThread m_processorThread;
 
     void start();
     void stop();

@@ -29,13 +29,37 @@ LIBS += -L"$$LIBREALSENSE_LIB" -lrealsense2
 
 INCLUDEPATH += "$$shell_path($$LIBREALSENSE_DIR/include)"
 
+PCL_DIR=$$shell_path($$THIRD_PARTY_DIR/pcl/1.8.1)
+PCL_LIB=$$shell_path($$PCL_DIR/lib)
+PCL_BIN=$$shell_path($$PCL_DIR/bin)
+
+CONFIG(debug, debug|release) {
+    LIBS += -L"$$PCL_LIB" -lpcl_common_debug -lpcl_filters_debug
+}
+else {
+    LIBS += -L"$$PCL_LIB" -lpcl_common_release -lpcl_filters_release
+}
+INCLUDEPATH += "$$shell_path($$PCL_DIR/include)"
+
+BOOST_DIR=$$shell_path($$THIRD_PARTY_DIR/Boost/1.64)
+BOOST_LIB=$$shell_path($$BOOST_DIR/lib)
+
+#LIBS += -L"$$BOOST_LIB" -lrealsense2
+
+INCLUDEPATH += "$$shell_path($$BOOST_DIR/include)"
+
+
+EIGEN_DIR=$$shell_path($$THIRD_PARTY_DIR/Eigen/eigen3)
+INCLUDEPATH += "$$shell_path($$EIGEN_DIR)"
+
 
 SOURCES += \
     tighty.cpp \
     camera/depthcamera.cpp \
     camera/realsense/rscamera.cpp \
     camera/realsense/rscameramanager.cpp \
-    camera/realsense/rsimagegeneratorworker.cpp
+    camera/realsense/rsframegeneratorworker.cpp \
+    camera/realsense/rsframeprocessorworker.cpp
 
 HEADERS += \
         tighty.h \
@@ -43,8 +67,9 @@ HEADERS += \
     camera/depthcamera.h \
     camera/realsense/rscamera.h \
     camera/realsense/rscameramanager.h \
-    camera/realsense/rsimagegeneratorworker.h \
-    camera/realsense/rscamera_p.h
+    camera/realsense/rscamera_p.h \
+    camera/realsense/rsframegeneratorworker.h \
+    camera/realsense/rsframeprocessorworker.h
 
 unix {
     target.path = /usr/lib

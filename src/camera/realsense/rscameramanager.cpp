@@ -26,7 +26,7 @@ void RSCameraManager::setup()
         }
         catch (const rs2::backend_error & e)
         {
-            qDebug() << "rs2error: " << rs2_exception_type_to_string( e.get_type());
+            qDebug() << "rs2error: " << rs2_exception_type_to_string(e.get_type());
             qDebug() << QString::fromStdString(e.what());
 
         }
