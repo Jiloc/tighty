@@ -46,9 +46,6 @@ REALSENSE_DIR = $$shell_path($$PWD/../src/3rdParty/librealsense/2.8.3)
 INCLUDEPATH += "$$shell_path($$PWD/../include)"
 LIBS += -L"$$shell_path($$TIGHTY_DIR/lib)" -ltighty
 
-# LIBS += -L"$$shell_path($$PWD/../src/3rdParty/librealsense/2.8.3/lib/x64)" -lrealsense2
-# INCLUDEPATH += "$$shell_path($$PWD/../src/3rdParty/librealsense/2.8.3/include)"
-
 QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$TIGHTY_DIR/bin/tighty.dll) $$DEST_DIR $$escape_expand(\n\t));
 QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/x64/realsense2.dll) $$DEST_DIR $$escape_expand(\n\t));
 
