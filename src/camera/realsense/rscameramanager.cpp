@@ -77,3 +77,9 @@ void RSCameraManager::removeDevices(const rs2::event_information& info)
         }
     }
 }
+
+const int RSCameraManager::getConnectedDevicesSize()
+{
+    QMutexLocker locker(&m_mutex);
+    return m_connectedDevices.size();
+}

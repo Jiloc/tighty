@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     VideoPlayer::declareQML();
 
-    RSCamera scanner(QString("610205001283"));
+    RSCamera scanner;
 
     engine.rootContext()->setContextProperty("scanner", &scanner);
 

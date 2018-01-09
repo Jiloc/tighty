@@ -5,7 +5,10 @@
 #include "tighty_global.h"
 #include "camera/depthcamera.h"
 
+#include <QUrl>
 #include <QScopedPointer>
+
+const QString DEFAULT_DEVICE("*");
 
 class RSCameraPrivate;
 
@@ -16,7 +19,7 @@ class TIGHTYSHARED_EXPORT RSCamera: public DepthCamera
     QScopedPointer<RSCameraPrivate> const d_ptr;
 
 public:
-    RSCamera(const QString& serialNumber);
+    RSCamera(const QString &serialNumber=DEFAULT_DEVICE);
     ~RSCamera();
 
     // start and stop are slots

@@ -56,7 +56,10 @@ void RSCameraPrivate::start()
 {
     Q_Q(RSCamera);
     q->setIsScanning(true);
-    m_pipe.start(m_config);
+
+    rs2::pipeline_profile profile = m_pipe.start(m_config);
+    m_scanningDeviceSerial = profile.get_device().get_info(
+                RS2_CAMERA_INFO_SERIAL_NUMBER);
     emit started();
 }
 
@@ -85,9 +88,13 @@ void RSCameraPrivate::onCameraConnected(const QString &serialNumber)
 {
     qDebug() << "Connected: " << serialNumber;
     Q_Q(RSCamera);
+    if (q->m_serialNumber == DEFAULT_DEVICE)
+    {
+        q->setIsConnected(true);
+    }
     if (serialNumber == q->m_serialNumber)
     {
-//        m_config.enable_stream(RS2_STREAM_DEPTH);
+        //        m_config.enable_stream(RS2_STREAM_DEPTH);
         m_config.enable_device(serialNumber.toStdString());
         q->setIsConnected(true);
     }
@@ -97,7 +104,19 @@ void RSCameraPrivate::onCameraDisconnected(const QString &serialNumber)
 {
     qDebug() << "Disconnected: " << serialNumber;
     Q_Q(RSCamera);
-    if (serialNumber == q->m_serialNumber)
+    if (q->m_serialNumber == DEFAULT_DEVICE && serialNumber == m_scanningDeviceSerial)
+    {
+        if (q->getIsScanning())
+        {
+            stop();
+        }
+        if (m_cameraManager.getConnectedDevicesSize() <= 0)
+        {
+            q->setIsConnected(false);
+        }
+    }
+
+    else if (serialNumber == q->m_serialNumber)
     {
         if (q->getIsScanning())
         {

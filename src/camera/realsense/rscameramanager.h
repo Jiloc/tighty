@@ -15,7 +15,7 @@ class RSCameraManager: public QObject
 public:
     RSCameraManager::RSCameraManager();
     void setup();
-
+    const int getConnectedDevicesSize();
 private:
     rs2::context m_ctx;
     QMutex m_mutex;

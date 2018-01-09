@@ -17,6 +17,7 @@ class RSCameraPrivate: public QObject
     Q_DECLARE_PUBLIC(RSCamera)
     RSCamera * const q_ptr;
 
+    QString m_scanningDeviceSerial;
     rs2::pipeline m_pipe;
     rs2::frame_queue m_queue;
     rs2::config m_config;
