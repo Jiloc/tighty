@@ -22,7 +22,6 @@ void RSFrameGeneratorWorker::doWork()
     {
         while(true)
         {
-
             rs2::frameset frames = m_pipe->wait_for_frames(); // Wait for next set of frames from the camera
             m_queue->enqueue(frames);
 

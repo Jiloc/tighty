@@ -1,5 +1,5 @@
 #include "rscamera_p.h"
-
+#include <QFileInfo>
 #include <QDebug>
 
 const std::string NO_CAMERA_MESSAGE = "No camera connected, please connect 1 or more";
@@ -32,7 +32,6 @@ RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
 
     connect(&m_generator, &RSFrameGeneratorWorker::stopped,
             this, &RSCameraPrivate::_stop);
-
 
     connect(&m_generator, &RSFrameGeneratorWorker::errorOccurred,
             this, &RSCameraPrivate::onErrorOccurred);
@@ -72,10 +71,17 @@ void RSCameraPrivate::stop()
 void RSCameraPrivate::_stop()
 {
     qDebug() << "stop pipe";
-    Q_Q(RSCamera);
     m_pipe.stop();
     qDebug() << "after pipe stop";
+    Q_Q(RSCamera);
     q->setIsScanning(false);
+}
+
+void RSCameraPrivate::playback(const QString &filename)
+{
+    m_config.enable_device_from_file(filename.toStdString());
+    Q_Q(RSCamera);
+    q->setIsConnected(true);
 }
 
 void RSCameraPrivate::onNewImage(QImage image)
@@ -130,9 +136,8 @@ void RSCameraPrivate::onCameraDisconnected(const QString &serialNumber)
 void RSCameraPrivate::onErrorOccurred(const QString &error)
 {
     qDebug() << error;
-    m_config.disable_all_streams();
-    m_pipe.stop();
     Q_Q(RSCamera);
+    stop();
     q->setIsScanning(false);
     emit q->errorOccurred(error);
 }
@@ -166,5 +171,10 @@ void RSCamera::stop()
     }
 }
 
-
+void RSCamera::playback(const QString &filename)
+{
+    QFileInfo fi(filename);
+    Q_D(RSCamera);
+    d->playback(fi.absoluteFilePath());
+}
 #include "moc_rscamera.cpp"

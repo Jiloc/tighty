@@ -20,6 +20,8 @@ public:
     RSCamera(const QString &serialNumber=DEFAULT_DEVICE);
     ~RSCamera();
 
+    void playback(const QString &filename);
+
     // start and stop are slots
     void start() override;
     void stop() override;

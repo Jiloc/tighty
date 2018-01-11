@@ -20,7 +20,6 @@ private:
     rs2::context m_ctx;
     QMutex m_mutex;
     QHash<QString, rs2::device> m_connectedDevices;
-
     void addDevice(rs2::device& dev);
     void removeDevices(const rs2::event_information& info);
 signals:

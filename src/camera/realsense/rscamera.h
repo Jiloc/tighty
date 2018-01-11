@@ -26,6 +26,8 @@ public:
     void start() override;
     void stop() override;
 
+    void playback(const QString &filename);
+
 };
 
 #endif // RSCAMERA_H

@@ -21,6 +21,7 @@ class RSCameraPrivate: public QObject
     rs2::pipeline m_pipe;
     rs2::frame_queue m_queue;
     rs2::config m_config;
+
     RSCameraManager m_cameraManager;
 
     RSFrameGeneratorWorker m_generator;
@@ -28,6 +29,7 @@ class RSCameraPrivate: public QObject
     QThread m_generatorThread;
     QThread m_processorThread;
 
+    void playback(const QString &filename);
     void start();
     void stop();
     void _stop();
