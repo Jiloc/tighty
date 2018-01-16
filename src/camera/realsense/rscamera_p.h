@@ -33,6 +33,7 @@ class RSCameraPrivate: public QObject
     void start();
     void stop();
     void _stop();
+    void record();
 
     void onNewImage(QImage image);
     void onErrorOccurred(const QString &error);
@@ -45,7 +46,7 @@ public:
 
 signals:
     void started();
-
+    void recording();
 
 };
 

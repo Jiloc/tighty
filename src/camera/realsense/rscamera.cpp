@@ -22,9 +22,8 @@ RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
 
     connect(this, &RSCameraPrivate::started,
             &m_generator, &RSFrameGeneratorWorker::doWork);
-    connect(this, &RSCameraPrivate::started,
+    connect(this, &RSCameraPrivate::recording,
             &m_processor, &RSFrameProcessorWorker::doWork);
-
 
     connect(&m_generator, &RSFrameGeneratorWorker::newImage,
             this, &RSCameraPrivate::onNewImage,
@@ -54,7 +53,7 @@ RSCameraPrivate::~RSCameraPrivate()
 void RSCameraPrivate::start()
 {
     Q_Q(RSCamera);
-    q->setIsScanning(true);
+    q->setIsStreaming(true);
 
     rs2::pipeline_profile profile = m_pipe.start(m_config);
     m_scanningDeviceSerial = profile.get_device().get_info(
@@ -75,6 +74,15 @@ void RSCameraPrivate::_stop()
     qDebug() << "after pipe stop";
     Q_Q(RSCamera);
     q->setIsScanning(false);
+    q->setIsStreaming(false);
+}
+
+void RSCameraPrivate::record()
+{
+    Q_Q(RSCamera);
+    q->setIsScanning(true);
+    m_generator.record();
+    emit recording();
 }
 
 void RSCameraPrivate::playback(const QString &filename)
@@ -100,7 +108,7 @@ void RSCameraPrivate::onCameraConnected(const QString &serialNumber)
     }
     if (serialNumber == q->m_serialNumber)
     {
-        //        m_config.enable_stream(RS2_STREAM_DEPTH);
+        // m_config.enable_stream(RS2_STREAM_DEPTH);
         m_config.enable_device(serialNumber.toStdString());
         q->setIsConnected(true);
     }
@@ -112,7 +120,7 @@ void RSCameraPrivate::onCameraDisconnected(const QString &serialNumber)
     Q_Q(RSCamera);
     if (q->m_serialNumber == DEFAULT_DEVICE && serialNumber == m_scanningDeviceSerial)
     {
-        if (q->getIsScanning())
+        if (q->getIsStreaming())
         {
             stop();
         }
@@ -124,7 +132,7 @@ void RSCameraPrivate::onCameraDisconnected(const QString &serialNumber)
 
     else if (serialNumber == q->m_serialNumber)
     {
-        if (q->getIsScanning())
+        if (q->getIsStreaming())
         {
             stop();
         }
@@ -138,6 +146,7 @@ void RSCameraPrivate::onErrorOccurred(const QString &error)
     qDebug() << error;
     Q_Q(RSCamera);
     stop();
+    q->setIsStreaming(false);
     q->setIsScanning(false);
     emit q->errorOccurred(error);
 }
@@ -155,7 +164,7 @@ RSCamera::~RSCamera()
 
 void RSCamera::start()
 {
-    if (!getIsScanning())
+    if (!getIsStreaming())
     {
         Q_D(RSCamera);
         d->start();
@@ -164,10 +173,19 @@ void RSCamera::start()
 
 void RSCamera::stop()
 {
-    if (getIsScanning())
+    if (getIsStreaming())
     {
         Q_D(RSCamera);
         d->stop();
+    }
+}
+
+void RSCamera::record()
+{
+    if (getIsStreaming() && ! getIsScanning())
+    {
+        Q_D(RSCamera);
+        d->record();
     }
 }
 
@@ -175,10 +193,7 @@ void RSCamera::playback(const QString &filename)
 {
     QFileInfo fi(filename);
     Q_D(RSCamera);
-    if(!fi.isAbsolute())
-        d->playback(fi.absoluteFilePath());
-    else
-        d->playback(filename);
+    d->playback(fi.absoluteFilePath());
 }
 
 void RSCamera::playback(const QUrl& url)

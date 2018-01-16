@@ -9,7 +9,7 @@ Window {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
+    title: qsTr("Tighty Example")
 
 
     Rectangle{
@@ -24,31 +24,27 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
 
             Button {
-                id: startButton
-                text: "Start"
-                anchors.left: parent.left
-                enabled: scanner.isConnected && !scanner.isScanning;
-                onClicked: scanner.start()
+                text: "Load File..."
+                enabled: !scanner.isStreaming
+                onClicked: fileDialog.visible = true
             }
+
             Button {
-                text: "Replay"
-                enabled: !startButton.enabled
-                onClicked: {
-                    fileDialog.visible = true;
-                }
+                text: "Start"
+                enabled: scanner.isConnected && !scanner.isStreaming
+                onClicked: scanner.start()
             }
 
             Button {
                 text: "Record"
-                //anchors.centerIn: parent
-                enabled: false
+                enabled: scanner.isStreaming && !scanner.isScanning
+                onClicked: scanner.record()
             }
 
             Button {
                 text: "Stop"
-                enabled: scanner.isConnected && scanner.isScanning;
+                enabled: scanner.isStreaming
                 onClicked: scanner.stop()
-                anchors.right: parent.right
             }
         }
 
@@ -75,9 +71,7 @@ Window {
         title: qsTr("Choose 3d real sense registration")
         folder: shortcuts.home
         selectMultiple: false
-        onAccepted: {
-            scanner.playback(fileDialog.fileUrl);
-        }
+        onAccepted: scanner.playback(fileDialog.fileUrl)
         nameFilters: ["Real Sense registrations (*.bag)","All files (*)"]
         visible: false
     }
@@ -90,6 +84,6 @@ Window {
 
     Connections {
         target: scanner
-        onErrorOccurred: errorText.text = error;
+        onErrorOccurred: errorText.text = error
     }
 }
