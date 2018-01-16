@@ -24,31 +24,27 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
 
             Button {
-                id: startButton
-                text: "Start"
-                anchors.left: parent.left
-                enabled: scanner.isConnected && !scanner.isScanning;
-                onClicked: scanner.start()
+                text: "Load File..."
+                enabled: !scanner.isStreaming
+                onClicked: fileDialog.visible = true
             }
+
             Button {
-                text: "Replay"
-                enabled: !startButton.enabled
-                onClicked: {
-                    fileDialog.visible = true;
-                }
+                text: "Start"
+                enabled: scanner.isConnected && !scanner.isStreaming
+                onClicked: scanner.start()
             }
 
             Button {
                 text: "Record"
-                //anchors.centerIn: parent
-                enabled: false
+                enabled: scanner.isStreaming && !scanner.isScanning
+                onClicked: scanner.record()
             }
 
             Button {
                 text: "Stop"
-                enabled: scanner.isConnected && scanner.isScanning;
+                enabled: scanner.isStreaming
                 onClicked: scanner.stop()
-                anchors.right: parent.right
             }
         }
 

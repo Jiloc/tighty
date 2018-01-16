@@ -22,9 +22,11 @@ public:
     RSCamera(const QString &serialNumber=DEFAULT_DEVICE);
     ~RSCamera();
 
-    // start and stop are slots
+    // start, stop and record are slots
     void start() override;
     void stop() override;
+    void record() override;
+
 public slots:
     void playback(const QString &filename);
     void playback(const QUrl& url);

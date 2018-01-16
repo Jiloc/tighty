@@ -7,25 +7,28 @@ RSFrameGeneratorWorker::RSFrameGeneratorWorker(rs2::pipeline *pipe, rs2::frame_q
     m_mutex()
 {
 }
-
+void RSFrameGeneratorWorker::record()
+{
+    QMutexLocker locker(&m_mutex);
+    m_recording = true;
+}
 void RSFrameGeneratorWorker::stop()
 {
     QMutexLocker locker(&m_mutex);
     m_stopped = true;
+    m_recording = false;
 }
 
 void RSFrameGeneratorWorker::doWork()
 {
     rs2::colorizer color_map;
     m_stopped = false;
+    m_recording = false;
     try
     {
         while(true)
         {
             rs2::frameset frames = m_pipe->wait_for_frames(); // Wait for next set of frames from the camera
-            m_queue->enqueue(frames);
-
-            emit newImage(frameToQImage(color_map(frames.get_depth_frame())));
             {
                 QMutexLocker locker(&m_mutex);
                 if (m_stopped)
@@ -33,7 +36,12 @@ void RSFrameGeneratorWorker::doWork()
                     emit stopped();
                     break;
                 }
+                if (m_recording)
+                {
+                    m_queue->enqueue(frames);
+                }
             }// locker goes out of scope and releases the mutex
+            emit newImage(frameToQImage(color_map(frames.get_depth_frame())));
         }
     }
     catch (const rs2::error & e)

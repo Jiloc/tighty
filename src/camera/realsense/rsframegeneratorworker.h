@@ -13,10 +13,12 @@ class RSFrameGeneratorWorker : public QObject
     Q_OBJECT
 public:
     explicit RSFrameGeneratorWorker(rs2::pipeline *pipe, rs2::frame_queue *queue);
+    void record();
     void stop();
 
 private:
     bool m_stopped;
+    bool m_recording;
     QMutex m_mutex;
     rs2::pipeline *m_pipe;
     rs2::frame_queue *m_queue;
