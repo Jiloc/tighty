@@ -175,6 +175,15 @@ void RSCamera::playback(const QString &filename)
 {
     QFileInfo fi(filename);
     Q_D(RSCamera);
-    d->playback(fi.absoluteFilePath());
+    if(!fi.isAbsolute())
+        d->playback(fi.absoluteFilePath());
+    else
+        d->playback(filename);
 }
+
+void RSCamera::playback(const QUrl& url)
+{
+    playback(url.toLocalFile());
+}
+
 #include "moc_rscamera.cpp"

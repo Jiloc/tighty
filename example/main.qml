@@ -2,6 +2,7 @@ import QtQuick 2.6
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.2
 import QtQuick.Window 2.2
+import QtQuick.Dialogs 1.2
 import VideoPlayer 1.0
 
 Window {
@@ -23,15 +24,23 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
 
             Button {
+                id: startButton
                 text: "Start"
                 anchors.left: parent.left
                 enabled: scanner.isConnected && !scanner.isScanning;
                 onClicked: scanner.start()
             }
+            Button {
+                text: "Replay"
+                enabled: !startButton.enabled
+                onClicked: {
+                    fileDialog.visible = true;
+                }
+            }
 
             Button {
                 text: "Record"
-                anchors.centerIn: parent
+                //anchors.centerIn: parent
                 enabled: false
             }
 
@@ -60,6 +69,18 @@ Window {
         }
     }
 
+
+    FileDialog {
+        id: fileDialog
+        title: qsTr("Choose 3d real sense registration")
+        folder: shortcuts.home
+        selectMultiple: false
+        onAccepted: {
+            scanner.playback(fileDialog.fileUrl);
+        }
+        nameFilters: ["Real Sense registrations (*.bag)","All files (*)"]
+        visible: false
+    }
 
     Connections {
         id: scannerConnections

@@ -25,8 +25,9 @@ public:
     // start and stop are slots
     void start() override;
     void stop() override;
-
+public slots:
     void playback(const QString &filename);
+    void playback(const QUrl& url);
 
 };
 
