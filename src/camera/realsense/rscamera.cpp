@@ -100,7 +100,7 @@ void RSCameraPrivate::onCameraConnected(const QString &serialNumber)
     }
     if (serialNumber == q->m_serialNumber)
     {
-        //        m_config.enable_stream(RS2_STREAM_DEPTH);
+        // m_config.enable_stream(RS2_STREAM_DEPTH);
         m_config.enable_device(serialNumber.toStdString());
         q->setIsConnected(true);
     }
@@ -175,10 +175,7 @@ void RSCamera::playback(const QString &filename)
 {
     QFileInfo fi(filename);
     Q_D(RSCamera);
-    if(!fi.isAbsolute())
-        d->playback(fi.absoluteFilePath());
-    else
-        d->playback(filename);
+    d->playback(fi.absoluteFilePath());
 }
 
 void RSCamera::playback(const QUrl& url)

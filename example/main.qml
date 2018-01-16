@@ -9,7 +9,7 @@ Window {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
+    title: qsTr("Tighty Example")
 
 
     Rectangle{
@@ -75,9 +75,7 @@ Window {
         title: qsTr("Choose 3d real sense registration")
         folder: shortcuts.home
         selectMultiple: false
-        onAccepted: {
-            scanner.playback(fileDialog.fileUrl);
-        }
+        onAccepted: scanner.playback(fileDialog.fileUrl)
         nameFilters: ["Real Sense registrations (*.bag)","All files (*)"]
         visible: false
     }
@@ -90,6 +88,6 @@ Window {
 
     Connections {
         target: scanner
-        onErrorOccurred: errorText.text = error;
+        onErrorOccurred: errorText.text = error
     }
 }
