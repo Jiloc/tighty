@@ -43,6 +43,7 @@ else {
 
 REALSENSE_DIR = $$shell_path($$PWD/../src/3rdParty/librealsense/2.8.3)
 PCL_DIR = $$shell_path($$PWD/../src/3rdParty/pcl/1.8.1)
+FLANN_DIR = $$shell_path($$PWD/../src/3rdParty/FLANN)
 
 INCLUDEPATH += "$$shell_path($$PWD/../include)"
 LIBS += -L"$$shell_path($$TIGHTY_DIR/lib)" -ltighty
@@ -58,7 +59,11 @@ CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_kdtree_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_octree_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_sample_consensus_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_features_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_keypoints_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
+    #QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$FLANN_DIR/bin/flann-gd.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_search_debug.dll) $$DEST_DIR);
+
 }
 else {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_common_release.dll) $$DEST_DIR $$escape_expand(\n\t));
@@ -66,5 +71,7 @@ else {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_kdtree_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_octree_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_sample_consensus_release.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_features_release.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_keypoints_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_search_release.dll) $$DEST_DIR);
 }

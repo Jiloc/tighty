@@ -34,17 +34,22 @@ PCL_LIB=$$shell_path($$PCL_DIR/lib)
 PCL_BIN=$$shell_path($$PCL_DIR/bin)
 
 CONFIG(debug, debug|release) {
-    LIBS += -L"$$PCL_LIB" -lpcl_common_debug -lpcl_filters_debug
+    LIBS += -L"$$PCL_LIB" -lpcl_common_debug -lpcl_filters_debug -lpcl_keypoints_debug -lpcl_features_debug
 }
 else {
-    LIBS += -L"$$PCL_LIB" -lpcl_common_release -lpcl_filters_release
+    LIBS += -L"$$PCL_LIB" -lpcl_common_release -lpcl_filters_release -lpcl_keypoints_release -lpcl_features_release
 }
 INCLUDEPATH += "$$shell_path($$PCL_DIR/include)"
 
 BOOST_DIR=$$shell_path($$THIRD_PARTY_DIR/Boost/1.64)
 BOOST_LIB=$$shell_path($$BOOST_DIR/lib)
 
-#LIBS += -L"$$BOOST_LIB" -lrealsense2
+CONFIG(debug, debug|release) {
+    LIBS += -L"$$BOOST_LIB" -llibboost_date_time-vc140-mt-gd-1_64
+}
+else {
+    LIBS += -L"$$BOOST_LIB" -llibboost_date_time-vc140-mt-1_64
+}
 
 INCLUDEPATH += "$$shell_path($$BOOST_DIR/include)"
 
@@ -52,6 +57,16 @@ INCLUDEPATH += "$$shell_path($$BOOST_DIR/include)"
 EIGEN_DIR=$$shell_path($$THIRD_PARTY_DIR/Eigen/eigen3)
 INCLUDEPATH += "$$shell_path($$EIGEN_DIR)"
 
+FLANN_DIR=$$shell_path($$THIRD_PARTY_DIR/FLANN)
+FLANN_LIB=$$shell_path($$FLANN_DIR/lib)
+INCLUDEPATH += "$$shell_path($$FLANN_DIR/include)"
+
+CONFIG(debug, debug|release) {
+    LIBS += -L"$$FLANN_LIB" #-lflann-gd #-lflann_cpp-gd #-lflann_cpp_s-gd
+}
+else {
+    LIBS += -L"$$FLANN_LIB" -lflann #-lflann_cpp -lflann_cpp_s
+}
 
 SOURCES += \
     tighty.cpp \
@@ -94,7 +109,10 @@ else {
 }
 
 QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$DEST_DIR/tighty.dll) $$shell_path($$DEST_DIR/bin/) $$escape_expand(\n\t))
-debug: QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$DEST_DIR/tighty.pdb) $$shell_path($$DEST_DIR/bin/) $$escape_expand(\n\t))
+
+CONFIG(debug, debug|release) {
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$DEST_DIR/tighty.pdb) $$shell_path($$DEST_DIR/bin/) $$escape_expand(\n\t))
+}
 
 QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$DEST_DIR/tighty.lib) $$shell_path($$DEST_DIR/lib/))
 
