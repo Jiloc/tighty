@@ -41,7 +41,7 @@ else {
     TIGHTY_DIR = $$shell_path($$PWD/../build/src/release)
 }
 
-REALSENSE_DIR = $$shell_path($$PWD/../src/3rdParty/librealsense/2.8.3)
+REALSENSE_DIR = $$shell_path($$PWD/../src/3rdParty/librealsense/2.9.1a_no_OMP)
 PCL_DIR = $$shell_path($$PWD/../src/3rdParty/pcl/1.8.1)
 FLANN_DIR = $$shell_path($$PWD/../src/3rdParty/FLANN)
 
@@ -49,11 +49,11 @@ INCLUDEPATH += "$$shell_path($$PWD/../include)"
 LIBS += -L"$$shell_path($$TIGHTY_DIR/lib)" -ltighty
 
 QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$TIGHTY_DIR/bin/tighty.dll) $$DEST_DIR $$escape_expand(\n\t));
-QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/x64/realsense2.dll) $$DEST_DIR $$escape_expand(\n\t));
 
 CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$TIGHTY_DIR/bin/tighty.pdb) $$DEST_DIR $$escape_expand(\n\t));
-    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/x64/realsense2.pdb) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/debug/x64/realsense2.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/debug/x64/realsense2.pdb) $$DEST_DIR $$escape_expand(\n\t));
 
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_common_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_filters_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
@@ -66,6 +66,7 @@ CONFIG(debug, debug|release) {
 
 }
 else {
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/release/x64/realsense2.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_common_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_filters_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_kdtree_release.dll) $$DEST_DIR $$escape_expand(\n\t));
