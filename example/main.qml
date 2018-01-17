@@ -7,8 +7,8 @@ import VideoPlayer 1.0
 
 Window {
     visible: true
-    width: 640
-    height: 480
+    width: 1280
+    height: 580
     title: qsTr("Tighty Example")
 
 
@@ -49,12 +49,23 @@ Window {
         }
 
         VideoPlayer{
-            id: player
-            width: 320
-            height: 240
+            id: rawStream
+            width: 640
+            height: 480
             z: 1
             visible: true
-            anchors.centerIn: parent
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+        }
+
+        VideoPlayer{
+            id: filteredStream
+            width: 640
+            height: 480
+            z: 1
+            visible: true
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
         }
 
         Text {
@@ -79,11 +90,8 @@ Window {
     Connections {
         id: scannerConnections
         target: scanner
-        onNewImage: player.setImage(image)
-    }
-
-    Connections {
-        target: scanner
+        onNewImage: rawStream.setImage(image)
+        onNewProcessedImage: filteredStream.setImage(image)
         onErrorOccurred: errorText.text = error
     }
 }

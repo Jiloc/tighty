@@ -54,6 +54,7 @@ QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/x64/realsens
 CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$TIGHTY_DIR/bin/tighty.pdb) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$REALSENSE_DIR/bin/x64/realsense2.pdb) $$DEST_DIR $$escape_expand(\n\t));
+
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_common_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_filters_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_kdtree_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
@@ -61,7 +62,6 @@ CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_sample_consensus_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_features_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_keypoints_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
-    #QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$FLANN_DIR/bin/flann-gd.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_search_debug.dll) $$DEST_DIR);
 
 }
