@@ -1,13 +1,17 @@
 #include "rscamera_p.h"
+
+#include <limits>
+
 #include <QFileInfo>
 #include <QDebug>
 
 const std::string NO_CAMERA_MESSAGE = "No camera connected, please connect 1 or more";
 
-const unsigned int FRAME_QUEUE_SIZE = 5;
+const unsigned int FRAME_QUEUE_SIZE = std::numeric_limits<unsigned int>::max();
 
 RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
     q_ptr(camera),
+    m_queue(FRAME_QUEUE_SIZE),
     m_generator(&m_pipe, &m_queue),
     m_processor(&m_pipe, &m_queue)
 {
