@@ -7,7 +7,7 @@
 #include <pcl/features/narf_descriptor.h>
 #include <QDebug>
 #include <QImage>
-
+#include <QThread>
 
 
 void getColorForFloat (float value,
@@ -156,7 +156,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
     m_stopped = false;
     float noiseLevel = 0.0f;
     float minimumRange = 0.035f;
-
+    int nrThreads = QThread::idealThreadCount() - 1;
     try
     {
         while(true)
@@ -191,15 +191,15 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
 //                    Eigen::Affine3f(pclPoints->sensor_orientation_);
             qDebug()<<"Calculating KeyPoints";
             qDebug()<<"*** Range image ***";
-            //pcl::RangeImage rangeImage;
+
             pcl::RangeImagePlanar rangeImage;
-//            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
-//                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
-            rangeImage.createFromPointCloudWithFixedSize(*cloudFiltered, depth.get_width(), depth.get_height(),
-                                                         static_cast<float>((float)depth.get_width() * 0.5f ),
-                                                         static_cast<float>((float)depth.get_height() * 0.5f), fx, fy,
+            float riWidth = static_cast<float>(depth.get_width());
+            float riHeight = static_cast<float>(depth.get_height());
+            rangeImage.createFromPointCloudWithFixedSize(*cloudFiltered, riWidth, riHeight,
+                                                         riWidth * 0.5f, riHeight * 0.5f, fx, fy,
                                                          sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel,
                                                          minimumRange);
+
 //            pcl::RangeImage rangeImage;
 //            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
 //                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
@@ -211,6 +211,9 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
             narfKeyPointDetector.setRangeImageBorderExtractor(&extractor);
             narfKeyPointDetector.setRangeImage(&rangeImage);
             narfKeyPointDetector.getParameters().support_size = 0.035f; //Defines the area 'covered' by an interest point (in meters)
+            narfKeyPointDetector.getParameters().calculate_sparse_interest_image = false;
+            narfKeyPointDetector.getParameters().max_no_of_threads = nrThreads;
+//            narfKeyPointDetector.getParameters().use_recursive_scale_reduction = true;
             narfKeyPointDetector.setRadiusSearch(0.01f);
             pcl::PointCloud<int> keypointIndices;
             narfKeyPointDetector.compute(keypointIndices);
