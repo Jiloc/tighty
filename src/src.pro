@@ -69,12 +69,12 @@ FLANN_DIR=$$shell_path($$THIRD_PARTY_DIR/FLANN)
 FLANN_LIB=$$shell_path($$FLANN_DIR/lib)
 INCLUDEPATH += "$$shell_path($$FLANN_DIR/include)"
 
-CONFIG(debug, debug|release) {
-    LIBS += -L"$$FLANN_LIB" #-lflann-gd #-lflann_cpp-gd #-lflann_cpp_s-gd
-}
-else {
-    LIBS += -L"$$FLANN_LIB" -lflann #-lflann_cpp -lflann_cpp_s
-}
+#CONFIG(debug, debug|release) {
+#    LIBS += -L"$$FLANN_LIB" #-lflann-gd #-lflann_cpp-gd #-lflann_cpp_s-gd
+#}
+#else {
+#    LIBS += -L"$$FLANN_LIB" -lflann #-lflann_cpp -lflann_cpp_s
+#}
 
 SOURCES += \
     tighty.cpp \
