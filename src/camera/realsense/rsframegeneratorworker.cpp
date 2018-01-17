@@ -29,6 +29,7 @@ void RSFrameGeneratorWorker::doWork()
         while(true)
         {
             rs2::frameset frames = m_pipe->wait_for_frames(); // Wait for next set of frames from the camera
+            frames.keep();
             {
                 QMutexLocker locker(&m_mutex);
                 if (m_stopped)
@@ -64,11 +65,11 @@ QImage RSFrameGeneratorWorker::frameToQImage(const rs2::frame& f)
 
     if (f.get_profile().format() == RS2_FORMAT_RGB8)
     {
-        return QImage((const uchar *) f.get_data(), w, h, QImage::Format_RGB888).copy();
+        return QImage((const uchar *) f.get_data(), w, h, QImage::Format_RGB888);
     }
     else if (f.get_profile().format() == RS2_FORMAT_Y8)
     {
-        return QImage((const uchar *) f.get_data(), w, h, QImage::Format_Grayscale8).copy();
+        return QImage((const uchar *) f.get_data(), w, h, QImage::Format_Grayscale8);
     }
 
     throw std::runtime_error("Frame format is not supported yet!");

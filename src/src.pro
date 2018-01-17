@@ -22,9 +22,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 THIRD_PARTY_DIR="$$shell_path($$PWD/3rdParty)"
-LIBREALSENSE_DIR=$$shell_path($$THIRD_PARTY_DIR/librealsense/2.8.3)
-LIBREALSENSE_LIB=$$shell_path($$LIBREALSENSE_DIR/lib/x64)
-LIBREALSENSE_BIN=$$shell_path($$LIBREALSENSE_DIR/bin/x64)
+LIBREALSENSE_DIR=$$shell_path($$THIRD_PARTY_DIR/librealsense/2.9.1a_no_OMP)
+
+CONFIG(debug, debug|release) {
+    LIBREALSENSE_BIN=$$shell_path($$LIBREALSENSE_DIR/bin/debug)
+    LIBREALSENSE_LIB=$$shell_path($$LIBREALSENSE_DIR/lib/debug)
+}
+else {
+    LIBREALSENSE_BIN=$$shell_path($$LIBREALSENSE_DIR/bin/release)
+    LIBREALSENSE_LIB=$$shell_path($$LIBREALSENSE_DIR/lib/release)
+}
+
 LIBS += -L"$$LIBREALSENSE_LIB" -lrealsense2
 
 INCLUDEPATH += "$$shell_path($$LIBREALSENSE_DIR/include)"
@@ -61,12 +69,12 @@ FLANN_DIR=$$shell_path($$THIRD_PARTY_DIR/FLANN)
 FLANN_LIB=$$shell_path($$FLANN_DIR/lib)
 INCLUDEPATH += "$$shell_path($$FLANN_DIR/include)"
 
-CONFIG(debug, debug|release) {
-    LIBS += -L"$$FLANN_LIB" #-lflann-gd #-lflann_cpp-gd #-lflann_cpp_s-gd
-}
-else {
-    LIBS += -L"$$FLANN_LIB" -lflann #-lflann_cpp -lflann_cpp_s
-}
+#CONFIG(debug, debug|release) {
+#    LIBS += -L"$$FLANN_LIB" #-lflann-gd #-lflann_cpp-gd #-lflann_cpp_s-gd
+#}
+#else {
+#    LIBS += -L"$$FLANN_LIB" -lflann #-lflann_cpp -lflann_cpp_s
+#}
 
 SOURCES += \
     tighty.cpp \
