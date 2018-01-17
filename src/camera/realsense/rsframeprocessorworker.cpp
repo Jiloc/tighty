@@ -1,5 +1,5 @@
 #include "rsframeprocessorworker.h"
-#include <pcl/range_image/range_image.h>
+#include <pcl/range_image/range_image_planar.h>
 #include <pcl/features/range_image_border_extractor.h>
 #include <pcl/point_types.h>
 #include <pcl/features/narf.h>
@@ -20,9 +20,12 @@ void RSFrameProcessorWorker::stop()
     m_stopped = true;
 }
 
-void RSFrameProcessorWorker::doWork()
+void RSFrameProcessorWorker::doWork(float fx, float fy)
 {
     m_stopped = false;
+    float noiseLevel = 0.0f;
+    float minimumRange = 0.035f;
+
     try
     {
         while(true)
@@ -32,40 +35,47 @@ void RSFrameProcessorWorker::doWork()
             rs2::depth_frame depth = fs.get_depth_frame();
             rs2::points points = m_pc.calculate(depth);
             auto pclPoints = pointsToPcl(points);
+
             pcl_ptr cloudFiltered(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::PassThrough<pcl::PointXYZ> pass;
             pass.setInputCloud(pclPoints);
             pass.setFilterFieldName("z");
             pass.setFilterLimits(0.3, 0.5);
             pass.filter(*cloudFiltered);
+
+            /*float angularResX = static_cast<float>(71.5f / (depth.get_width() * (M_PI / 180.0f)));
+            float angularResY = static_cast<float>(55.0f / (depth.get_height() * (M_PI / 180.0f)))*/;
+
             qDebug() << "before: " << pclPoints->points.size() << " after: " << cloudFiltered->points.size();
-            //            rs2::frameset frameset;
-            //            m_pipe->poll_for_frames(&frameset);
-            //            if (frameset.size() > 0)
-            //            {
-            //                //rs2::frameset data = m_pipe->wait_for_frames(); // Wait for next set of frames from the camera
-            //                // rs2::frame depth = data.get_depth_frame(); // Find and colorize the depth data
-            //                // rs2::depth_frame depth = data.get_depth_frame();
-            //                // rs2::frame frame = color_map(depth);
-            //                rs2::frame depth = color_map(frameset.get_depth_frame()); // Find and colorize the depth data
-            //                //rs2::frame color = data.get_color_frame();            // Find the color data
-            //                emit newImage(frameToQImage(depth));
-            //            }
-            Eigen::Affine3f sensorPose = Eigen::Affine3f(Eigen::Translation3f(cloudFiltered->sensor_origin_[0],
-                                                         cloudFiltered->sensor_origin_[1],
-                    cloudFiltered->sensor_origin_[2])) * Eigen::Affine3f(cloudFiltered->sensor_orientation_);
+
+            Eigen::Affine3f sensorPose = Eigen::Affine3f(
+                        Eigen::Translation3f(cloudFiltered->sensor_origin_[0],
+                        cloudFiltered->sensor_origin_[1],
+                        cloudFiltered->sensor_origin_[2])) *
+                    Eigen::Affine3f(cloudFiltered->sensor_orientation_);
+//            Eigen::Affine3f sensorPose = Eigen::Affine3f(
+//                        Eigen::Translation3f(pclPoints->sensor_origin_[0],
+//                        pclPoints->sensor_origin_[1],
+//                        pclPoints->sensor_origin_[2])) *
+//                    Eigen::Affine3f(pclPoints->sensor_orientation_);
             qDebug()<<"Calculating KeyPoints";
             qDebug()<<"*** Range image ***";
-            pcl::RangeImage rangeImage;
-            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
-                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
+            //pcl::RangeImage rangeImage;
+            pcl::RangeImagePlanar rangeImage;
+//            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
+//                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
+            rangeImage.createFromPointCloudWithFixedSize(*cloudFiltered, depth.get_width(), depth.get_height(),
+                                                         static_cast<float>((float)depth.get_width() * 0.5f ),
+                                                         static_cast<float>((float)depth.get_height() * 0.5f), fx, fy,
+                                                         sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel,
+                                                         minimumRange);
             rangeImage.setUnseenToMaxRange();
             qDebug()<<"Range Image size: "<<rangeImage.size();
             pcl::RangeImageBorderExtractor extractor;
             pcl::NarfKeypoint narfKeyPointDetector;
             narfKeyPointDetector.setRangeImageBorderExtractor(&extractor);
             narfKeyPointDetector.setRangeImage(&rangeImage);
-            narfKeyPointDetector.getParameters().support_size = 0.03f; //Defines the area 'covered' by an interest point (in meters)
+            narfKeyPointDetector.getParameters().support_size = 0.035f; //Defines the area 'covered' by an interest point (in meters)
             narfKeyPointDetector.setRadiusSearch(0.01f);
             pcl::PointCloud<int> keypointIndices;
             narfKeyPointDetector.compute(keypointIndices);
@@ -83,7 +93,7 @@ void RSFrameProcessorWorker::doWork()
             narfDescriptor.setRangeImage(&rangeImage,&feKeypointIndices);
             narfDescriptor.getParameters().support_size = 0.03f;
             narfDescriptor.getParameters().rotation_invariant = true;
-            pcl::PointCloud<pcl::Narf36> narfDescriptors;
+            pcl::PointCloud<pcl::Narf36> narfDescriptors; //pcl::Narf36 -> struct representing Narf descriptor
             narfDescriptor.compute(narfDescriptors);
             qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
             {

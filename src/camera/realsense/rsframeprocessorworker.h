@@ -30,7 +30,7 @@ private:
     pcl_ptr pointsToPcl(const rs2::points &points);
 
 public slots:
-    void doWork();
+    void doWork(float fx, float fy);
 
 signals:
     void stopped();

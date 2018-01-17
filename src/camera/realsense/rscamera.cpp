@@ -55,8 +55,8 @@ void RSCameraPrivate::start()
     Q_Q(RSCamera);
     q->setIsStreaming(true);
 
-    rs2::pipeline_profile profile = m_pipe.start(m_config);
-    m_scanningDeviceSerial = profile.get_device().get_info(
+    m_profile = m_pipe.start(m_config);
+    m_scanningDeviceSerial = m_profile.get_device().get_info(
                 RS2_CAMERA_INFO_SERIAL_NUMBER);
     emit started();
 }
@@ -82,7 +82,12 @@ void RSCameraPrivate::record()
     Q_Q(RSCamera);
     q->setIsScanning(true);
     m_generator.record();
-    emit recording();
+    rs2::video_stream_profile streamProfile = m_profile.get_stream(RS2_STREAM_DEPTH)
+            .as<rs2::video_stream_profile>();
+    rs2_intrinsics intrinsics = streamProfile.get_intrinsics();
+    qDebug()<<"start recording with intrinsics: Model ->"<<intrinsics.model<<
+              ", fx and fy: "<<intrinsics.fx<<", "<<intrinsics.fy;
+    emit recording(intrinsics.fx, intrinsics.fy);
 }
 
 void RSCameraPrivate::playback(const QString &filename)

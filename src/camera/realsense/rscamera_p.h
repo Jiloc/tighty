@@ -19,6 +19,7 @@ class RSCameraPrivate: public QObject
 
     QString m_scanningDeviceSerial;
     rs2::pipeline m_pipe;
+    rs2::pipeline_profile m_profile;
     rs2::frame_queue m_queue;
     rs2::config m_config;
 
@@ -46,7 +47,7 @@ public:
 
 signals:
     void started();
-    void recording();
+    void recording(float fx, float fy);
 
 };
 
