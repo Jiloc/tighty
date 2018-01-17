@@ -4,6 +4,7 @@
 #include <pcl/point_types.h>
 #include <pcl/features/narf.h>
 #include <pcl/keypoints/narf_keypoint.h>
+#include <pcl/features/narf_descriptor.h>
 #include <QDebug>
 
 RSFrameProcessorWorker::RSFrameProcessorWorker(rs2::pipeline *pipe, rs2::frame_queue *queue):
@@ -70,6 +71,22 @@ void RSFrameProcessorWorker::doWork()
             pcl::PointCloud<int> keypointIndices;
             narfKeyPointDetector.compute(keypointIndices);
             qDebug()<<"Detected "<<keypointIndices.points.size()<<"key points";
+            // basic feature description estimation
+            std::vector<int> feKeypointIndices;
+            feKeypointIndices.resize(keypointIndices.size());
+            size_t keypointIndicesSize = keypointIndices.size();
+            for(unsigned int i=0;i<keypointIndicesSize;i++){
+                feKeypointIndices[i] = keypointIndices[i];
+            }
+            //pcl::RangeImage::ConstPtr constRangeImagePtr(&rangeImage);
+            pcl::NarfDescriptor narfDescriptor;
+            //narfDescriptor.setRangeImage(constRangeImagePtr.get(),&feKeypointIndices);
+            narfDescriptor.setRangeImage(&rangeImage,&feKeypointIndices);
+            narfDescriptor.getParameters().support_size = 0.03f;
+            narfDescriptor.getParameters().rotation_invariant = true;
+            pcl::PointCloud<pcl::Narf36> narfDescriptors;
+            narfDescriptor.compute(narfDescriptors);
+            qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
             {
                 QMutexLocker locker(&m_mutex);
                 if (m_stopped)
