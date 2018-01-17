@@ -22,6 +22,7 @@ class RSCameraPrivate: public QObject
     rs2::pipeline_profile m_profile;
     rs2::frame_queue m_queue;
     rs2::config m_config;
+    bool m_isPlayback;
 
     RSCameraManager m_cameraManager;
 
@@ -38,7 +39,8 @@ class RSCameraPrivate: public QObject
 
     void onNewImage(QImage image);
     void onNewProcessedImage(QImage image);
-    void onErrorOccurred(const QString &error);
+    void onGeneratorErrorOccurred(const QString &error);
+    void onProcessorErrorOccurred(const QString &error);
     void onCameraConnected(const QString &serialNumber);
     void onCameraDisconnected(const QString &serialNumber);
 

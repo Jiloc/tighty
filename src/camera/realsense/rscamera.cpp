@@ -41,9 +41,9 @@ RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
             this, &RSCameraPrivate::_stop);
 
     connect(&m_generator, &RSFrameGeneratorWorker::errorOccurred,
-            this, &RSCameraPrivate::onErrorOccurred);
+            this, &RSCameraPrivate::onGeneratorErrorOccurred);
     connect(&m_processor, &RSFrameProcessorWorker::errorOccurred,
-            this, &RSCameraPrivate::onErrorOccurred);
+            this, &RSCameraPrivate::onProcessorErrorOccurred);
 
     m_generatorThread.start();
     m_processorThread.start();
@@ -100,6 +100,7 @@ void RSCameraPrivate::record()
 
 void RSCameraPrivate::playback(const QString &filename)
 {
+    m_isPlayback = true;
     m_config.enable_device_from_file(filename.toStdString());
     Q_Q(RSCamera);
     q->setIsConnected(true);
@@ -161,7 +162,25 @@ void RSCameraPrivate::onCameraDisconnected(const QString &serialNumber)
     }
 }
 
-void RSCameraPrivate::onErrorOccurred(const QString &error)
+void RSCameraPrivate::onGeneratorErrorOccurred(const QString &error)
+{
+    if (m_isPlayback)
+    {
+        rs2::playback pd = static_cast<rs2::playback>(m_profile.get_device());
+        if (pd.current_status() == RS2_PLAYBACK_STATUS_STOPPED)
+        {
+            return;
+        }
+    }
+    qDebug() << error;
+    Q_Q(RSCamera);
+    stop();
+    q->setIsStreaming(false);
+    q->setIsScanning(false);
+    emit q->errorOccurred(error);
+}
+
+void RSCameraPrivate::onProcessorErrorOccurred(const QString &error)
 {
     qDebug() << error;
     Q_Q(RSCamera);
