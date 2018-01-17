@@ -6,6 +6,137 @@
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/features/narf_descriptor.h>
 #include <QDebug>
+#include <QImage>
+
+
+
+void getColorForFloat (float value,
+                       uchar& r, uchar& g, uchar& b)
+{
+    if (pcl_isinf (value))
+    {
+        if (value > 0.0f)
+        {
+            r = 150;  g = 150;  b = 200;  // INFINITY
+            return;
+        }
+        r = 150;  g = 200;  b = 150;  // -INFINITY
+        return;
+    }
+    if (!pcl_isfinite (value))
+    {
+        r = 200;  g = 150;  b = 150;  // -INFINITY
+        return;
+    }
+
+    r = g = b = 0;
+    value *= 10;
+    if (value <= 1.0)
+    {  // black -> purple
+        b = static_cast<uchar> (pcl_lrint(value*200));
+        r = static_cast<uchar> (pcl_lrint(value*120));
+    }
+    else if (value <= 2.0)
+    {  // purple -> blue
+        b = static_cast<uchar> (200 + pcl_lrint((value-1.0)*55));
+        r = static_cast<uchar> (120 - pcl_lrint((value-1.0)*120));
+    }
+    else if (value <= 3.0)
+    {  // blue -> turquoise
+        b = static_cast<uchar> (255 - pcl_lrint((value-2.0)*55));
+        g = static_cast<uchar> (pcl_lrint((value-2.0)*200));
+    }
+    else if (value <= 4.0)
+    {  // turquoise -> green
+        b = static_cast<uchar> (200 - pcl_lrint((value-3.0)*200));
+        g = static_cast<uchar> (200 + pcl_lrint((value-3.0)*55));
+    }
+    else if (value <= 5.0)
+    {  // green -> greyish green
+        g = static_cast<uchar> (255 - pcl_lrint((value-4.0)*100));
+        r = static_cast<uchar> (pcl_lrint((value-4.0)*120));
+    }
+    else if (value <= 6.0)
+    { // greyish green -> red
+        r = static_cast<uchar> (100 + pcl_lrint((value-5.0)*155));
+        g = static_cast<uchar> (120 - pcl_lrint((value-5.0)*120));
+        b = static_cast<uchar> (120 - pcl_lrint((value-5.0)*120));
+    }
+    else if (value <= 7.0)
+    {  // red -> yellow
+        r = 255;
+        g = static_cast<uchar> (pcl_lrint((value-6.0)*255));
+    }
+    else
+    {  // yellow -> white
+        r = 255;
+        g = 255;
+        b = static_cast<uchar> (pcl_lrint((value-7.0)*255.0/3.0));
+    }
+}
+
+QImage rangeImageToQImage(
+        const pcl::RangeImage &ri,
+        float min_value = -std::numeric_limits<float>::infinity (),
+        float max_value =  std::numeric_limits<float>::infinity (),
+        bool grayscale = false)
+{
+    int size = ri.width * ri.height;
+    int arraySize = 3 * size;
+    float* floatImage = ri.getRangesArray();
+
+    uchar *data = new uchar[arraySize];
+    uchar *dataPtr = data;
+
+    bool recalculateMinValue = pcl_isinf (min_value),
+            recalculateMaxValue = pcl_isinf (max_value);
+    if (recalculateMinValue) min_value = std::numeric_limits<float>::infinity ();
+    if (recalculateMaxValue) max_value = -std::numeric_limits<float>::infinity ();
+
+    if (recalculateMinValue || recalculateMaxValue)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            float value = floatImage[i];
+            if (!pcl_isfinite(value)) continue;
+            if (recalculateMinValue)  min_value = (std::min)(min_value, value);
+            if (recalculateMaxValue)  max_value = (std::max)(max_value, value);
+        }
+    }
+
+    float factor = 1.0f / (max_value - min_value), offset = -min_value;
+
+    for (int i = 0; i < size; ++i)
+    {
+        uchar& r= *(dataPtr++), &g = *(dataPtr++), &b = *(dataPtr++);
+        float value = floatImage[i];
+
+        if (!pcl_isfinite(value))
+        {
+            getColorForFloat(value, r, g, b);
+            continue;
+        }
+
+        // Normalize value to [0, 1]
+        value = std::max (0.0f, std::min (1.0f, factor * (value + offset)));
+
+        // Get a color from the value in [0, 1]
+        if (grayscale)
+        {
+            r = g = b = static_cast<uchar> (pcl_lrint (value * 255));
+        }
+        else
+        {
+            getColorForFloat(value, r, g, b);
+        }
+        //cout << "Setting pixel "<<i<<" to "<<(int)r<<", "<<(int)g<<", "<<(int)b<<".\n";
+    }
+
+    QImage qimage = QImage((const uchar *) data, ri.width, ri.height, QImage::Format_RGB888).copy();
+    delete[] data;
+    return qimage;
+}
+
 
 RSFrameProcessorWorker::RSFrameProcessorWorker(rs2::pipeline *pipe, rs2::frame_queue *queue):
     m_mutex(),
@@ -59,6 +190,7 @@ void RSFrameProcessorWorker::doWork()
             pcl::RangeImage rangeImage;
             rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
                                             sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
+            emit newImage(rangeImageToQImage(rangeImage));
             rangeImage.setUnseenToMaxRange();
             qDebug()<<"Range Image size: "<<rangeImage.size();
             pcl::RangeImageBorderExtractor extractor;
@@ -137,4 +269,5 @@ pcl_ptr RSFrameProcessorWorker::pointsToPcl(const rs2::points& points)
     }
     return cloud;
 }
+
 

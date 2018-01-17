@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QString>
 #include <QMutex>
+#include <QImage>
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
@@ -33,6 +34,7 @@ public slots:
     void doWork();
 
 signals:
+    void newImage(QImage image);
     void stopped();
     void errorOccurred(const QString &error);
 };

@@ -29,6 +29,10 @@ RSCameraPrivate::RSCameraPrivate(RSCamera *camera):
             this, &RSCameraPrivate::onNewImage,
             Qt::ConnectionType::QueuedConnection);
 
+    connect(&m_processor, &RSFrameProcessorWorker::newImage,
+            this, &RSCameraPrivate::onNewProcessedImage,
+            Qt::ConnectionType::QueuedConnection);
+
     connect(&m_generator, &RSFrameGeneratorWorker::stopped,
             this, &RSCameraPrivate::_stop);
 
@@ -97,6 +101,13 @@ void RSCameraPrivate::onNewImage(QImage image)
     Q_Q(RSCamera);
     emit q->newImage(image);
 }
+
+void RSCameraPrivate::onNewProcessedImage(QImage image)
+{
+    Q_Q(RSCamera);
+    emit q->newProcessedImage(image);
+}
+
 
 void RSCameraPrivate::onCameraConnected(const QString &serialNumber)
 {

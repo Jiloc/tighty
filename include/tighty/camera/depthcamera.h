@@ -25,6 +25,7 @@ public slots:
 
 signals:
     void newImage(QImage image);
+    void newProcessedImage(QImage image);
     void isConnectedChanged(const bool isConnected);
     void isStreamingChanged(const bool isStreaming);
     void isScanningChanged(const bool isScanning);

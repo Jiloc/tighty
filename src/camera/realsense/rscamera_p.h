@@ -36,6 +36,7 @@ class RSCameraPrivate: public QObject
     void record();
 
     void onNewImage(QImage image);
+    void onNewProcessedImage(QImage image);
     void onErrorOccurred(const QString &error);
     void onCameraConnected(const QString &serialNumber);
     void onCameraDisconnected(const QString &serialNumber);

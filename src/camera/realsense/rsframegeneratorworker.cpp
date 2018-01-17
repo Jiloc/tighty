@@ -83,3 +83,5 @@ QImage RSFrameGeneratorWorker::frameToQImage(const rs2::frame& f)
     }
     */
 }
+
+
