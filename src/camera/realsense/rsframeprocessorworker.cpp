@@ -32,7 +32,6 @@ void RSFrameProcessorWorker::doWork()
             rs2::depth_frame depth = fs.get_depth_frame();
             rs2::points points = m_pc.calculate(depth);
             auto pclPoints = pointsToPcl(points);
-
             pcl_ptr cloudFiltered(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::PassThrough<pcl::PointXYZ> pass;
             pass.setInputCloud(pclPoints);
@@ -111,6 +110,8 @@ void RSFrameProcessorWorker::doWork()
 
 pcl_ptr RSFrameProcessorWorker::pointsToPcl(const rs2::points& points)
 {
+    static const float nan = std::numeric_limits<float>::quiet_NaN();
+
     pcl_ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
     auto sp = points.get_profile().as<rs2::video_stream_profile>();
@@ -122,13 +123,18 @@ pcl_ptr RSFrameProcessorWorker::pointsToPcl(const rs2::points& points)
     for (pcl::PointXYZ & p : cloud->points)
     {
         //memcpy(p.data, &(ptr->x), sizeof(float) * 3);
-        p.x = ptr->x;
-        p.y = ptr->y;
-        p.z = ptr->z;
+        if (ptr->z == 0)
+        {
+            p.x = p.y = p.z = nan;
+        }
+        else
+        {
+            p.x = ptr->x;
+            p.y = ptr->y;
+            p.z = ptr->z;
+        }
         ptr++;
     }
-
     return cloud;
 }
-
 
