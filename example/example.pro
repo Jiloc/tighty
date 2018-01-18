@@ -62,6 +62,9 @@ CONFIG(debug, debug|release) {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_sample_consensus_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_features_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_keypoints_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_visualization_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_io_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_io_ply_debug.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_search_debug.dll) $$DEST_DIR);
 
 }
@@ -74,5 +77,8 @@ else {
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_sample_consensus_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_features_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_keypoints_release.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_visualization_release.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_io_release.dll) $$DEST_DIR $$escape_expand(\n\t));
+    QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_io_ply_release.dll) $$DEST_DIR $$escape_expand(\n\t));
     QMAKE_POST_LINK += $$quote($(COPY) $$shell_path($$PCL_DIR/bin/pcl_search_release.dll) $$DEST_DIR);
 }

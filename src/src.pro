@@ -42,10 +42,10 @@ PCL_LIB=$$shell_path($$PCL_DIR/lib)
 PCL_BIN=$$shell_path($$PCL_DIR/bin)
 
 CONFIG(debug, debug|release) {
-    LIBS += -L"$$PCL_LIB" -lpcl_common_debug -lpcl_filters_debug -lpcl_keypoints_debug -lpcl_features_debug
+    LIBS += -L"$$PCL_LIB" -lpcl_common_debug -lpcl_filters_debug -lpcl_keypoints_debug -lpcl_features_debug -lpcl_visualization_debug
 }
 else {
-    LIBS += -L"$$PCL_LIB" -lpcl_common_release -lpcl_filters_release -lpcl_keypoints_release -lpcl_features_release
+    LIBS += -L"$$PCL_LIB" -lpcl_common_release -lpcl_filters_release -lpcl_keypoints_release -lpcl_features_release -lpcl_visualization_release
 }
 INCLUDEPATH += "$$shell_path($$PCL_DIR/include)"
 
@@ -75,6 +75,18 @@ INCLUDEPATH += "$$shell_path($$FLANN_DIR/include)"
 #else {
 #    LIBS += -L"$$FLANN_LIB" -lflann #-lflann_cpp -lflann_cpp_s
 #}
+VTK_DIR=$$shell_path($$THIRD_PARTY_DIR/VTK)
+VTK_LIB=$$shell_path($$VTK_DIR/lib)
+
+CONFIG(debug, debug|release) {
+    LIBS += -L"$$VTK_LIB" -lvtkCommonCore-8.0-gd -lvtksys-8.0-gd
+}
+else {
+    LIBS += -L"$$VTK_LIB" -lvtkCommonCore-8.0 -lvtksys-8.0
+}
+INCLUDEPATH += "$$shell_path($$VTK_DIR/include/vtk-8.0)"
+
+LIBS += -lUser32 -lGdi32 -lShell32
 
 SOURCES += \
     tighty.cpp \

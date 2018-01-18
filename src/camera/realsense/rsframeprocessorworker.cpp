@@ -5,6 +5,7 @@
 #include <pcl/features/narf.h>
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/features/narf_descriptor.h>
+#include <pcl/visualization/range_image_visualizer.h>
 #include <QDebug>
 #include <QImage>
 #include <QThread>
@@ -178,7 +179,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
             float angularResY = static_cast<float>(55.0f / (depth.get_height() * (M_PI / 180.0f)))*/;
 
             qDebug() << "before: " << pclPoints->points.size() << " after: " << cloudFiltered->points.size();
-
+            qDebug() << "before: " << pclPoints->width << "x" << pclPoints->height << "after: " << cloudFiltered->width << "x" << cloudFiltered->height;
             Eigen::Affine3f sensorPose = Eigen::Affine3f(
                         Eigen::Translation3f(cloudFiltered->sensor_origin_[0],
                         cloudFiltered->sensor_origin_[1],
@@ -199,7 +200,8 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                                                          riWidth * 0.5f, riHeight * 0.5f, fx, fy,
                                                          sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel,
                                                          minimumRange);
-
+            // Does this speed up the calculations?
+            // rangeImage.cropImage();
 //            pcl::RangeImage rangeImage;
 //            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
 //                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
@@ -218,6 +220,26 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
             pcl::PointCloud<int> keypointIndices;
             narfKeyPointDetector.compute(keypointIndices);
             qDebug()<<"Detected "<<keypointIndices.points.size()<<"key points";
+
+//            // Open a Visualizer to show keypoints
+//            pcl::visualization::RangeImageVisualizer viewer("NARF keypoints");
+//            viewer.showRangeImage(rangeImage);
+//            for (size_t i = 0; i < keypointIndices.points.size(); ++i)
+//            {
+//                viewer.markPoint(keypointIndices.points[i] % rangeImage.width,
+//                                 keypointIndices.points[i] / rangeImage.width,
+//                                 // Set the color of the pixel to red (the background
+//                                 // circle is already that color). All other parameters
+//                                 // are left untouched, check the API for more options.
+//                                 pcl::visualization::Vector3ub(1.0f, 0.0f, 0.0f));
+//            }
+//            while (!viewer.wasStopped())
+//            {
+//                viewer.spinOnce();
+//                // Sleep 100ms to go easy on the CPU.
+//                pcl_sleep(0.1);
+//            }
+
             // basic feature description estimation
             std::vector<int> feKeypointIndices;
             feKeypointIndices.resize(keypointIndices.size());
