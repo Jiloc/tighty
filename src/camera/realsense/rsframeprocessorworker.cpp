@@ -7,7 +7,8 @@
 #include <pcl/features/narf_descriptor.h>
 #include <pcl/visualization/range_image_visualizer.h>
 #include <QDebug>
-#include <QImage>
+//#include <QImage>
+#include "utils/customrangeimagepainter.h"
 #include <QThread>
 
 
@@ -133,6 +134,7 @@ QImage rangeImageToQImage(
         //cout << "Setting pixel "<<i<<" to "<<(int)r<<", "<<(int)g<<", "<<(int)b<<".\n";
     }
 
+    //QImage qimage = QImage((const uchar *) data, ri.width, ri.height, QImage::Format_RGB888).copy();
     QImage qimage = QImage((const uchar *) data, ri.width, ri.height, QImage::Format_RGB888).copy();
     delete[] data;
     return qimage;
@@ -211,7 +213,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                 //            pcl::RangeImage rangeImage;
                 //            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
                 //                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
-                QImage viewRangeImage = rangeImageToQImage(rangeImage);
+                CustomRangeImagePainter viewRangeImage = rangeImageToQImage(rangeImage);
                 rangeImage.setUnseenToMaxRange();
                 qDebug()<<"Range Image size: "<<rangeImage.size();
                 pcl::RangeImageBorderExtractor extractor;
@@ -229,15 +231,20 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                 narfKeyPointDetector.compute(keypointIndices);
                 qDebug()<<"Detected "<<keypointIndices.points.size()<<"key points";
                 QColor narfColor = QColor::fromRgb(255,0,0);
-                for( unsigned int i=0; i < keypointIndices.points.size(); i++) {
-                    int curPoint = keypointIndices.points[i];
-                    int px = curPoint % rangeImage.width;
-                    int py = curPoint / rangeImage.width;
-                    qDebug()<<"setting pixel: "<<px<<", "<<py<<" of point "<<i<<", to color "<<narfColor;
-                    viewRangeImage.setPixelColor(px,py,narfColor);
+                const int markPointSize = 8; // markPoint size in pixels
+//                for( unsigned int i=0; i < keypointIndices.points.size(); i++) {
+//                    int curPoint = keypointIndices.points[i];
+//                    int px = curPoint % rangeImage.width;
+//                    int py = curPoint / rangeImage.width;
+//                    qDebug()<<"setting pixel: "<<px<<", "<<py<<" of point "<<i<<", to color "<<narfColor;
+//                    for(int j=py - markPointSize;j<py+markPointSize;j++) {
+//                        for(int k=px-markPointSize;k<px+markPointSize;k++)
+//                            viewRangeImage.setPixelColor(k,j,narfColor);
+//                    }
+//                }
+                viewRangeImage.markPoints(keypointIndices,rangeImage,narfColor);
 
-                }
-                emit newImage(viewRangeImage);
+
 
                 pcl::NarfKeypoint narfKeyPointDetector2;
                 narfKeyPointDetector2.setRangeImageBorderExtractor(&extractor);
@@ -253,6 +260,10 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                 keypointIndices2.sensor_orientation_ = rangeImage.sensor_orientation_;
                 narfKeyPointDetector2.compute(keypointIndices2);
                 qDebug()<<"Detected2 "<<keypointIndices2.points.size()<<"key points";
+                QColor narfColor2 = QColor::fromRgb(0,220,0);
+                viewRangeImage.markPoints(keypointIndices2,rangeImage,narfColor2);
+
+                emit newImage(viewRangeImage);
 
 //                pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
 //                pcl::PointCloud<pcl::FPFHSignature33>::Ptr fphsDescriptors(new pcl::PointCloud<pcl::FPFHSignature33>);

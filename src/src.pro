@@ -94,7 +94,8 @@ SOURCES += \
     camera/realsense/rscamera.cpp \
     camera/realsense/rscameramanager.cpp \
     camera/realsense/rsframegeneratorworker.cpp \
-    camera/realsense/rsframeprocessorworker.cpp
+    camera/realsense/rsframeprocessorworker.cpp \
+    utils/customrangeimagepainter.cpp
 
 HEADERS += \
         tighty.h \
@@ -104,7 +105,8 @@ HEADERS += \
     camera/realsense/rscameramanager.h \
     camera/realsense/rscamera_p.h \
     camera/realsense/rsframegeneratorworker.h \
-    camera/realsense/rsframeprocessorworker.h
+    camera/realsense/rsframeprocessorworker.h \
+    utils/customrangeimagepainter.h
 
 unix {
     target.path = /usr/lib
