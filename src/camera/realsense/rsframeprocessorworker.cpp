@@ -156,8 +156,10 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
 {
     m_stopped = false;
     float noiseLevel = 0.0f;
-    float minimumRange = 0.035f;
+    float minimumRange = 0.02f;
     int nrThreads = QThread::idealThreadCount() - 1;
+    static int curFrame = 0;
+    const int nrFrameShow = 9;
     try
     {
         while(true)
@@ -172,7 +174,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
             pcl::PassThrough<pcl::PointXYZ> pass;
             pass.setInputCloud(pclPoints);
             pass.setFilterFieldName("z");
-            pass.setFilterLimits(0.3, 0.5);
+            pass.setFilterLimits(0.2, 0.5);
             pass.filter(*cloudFiltered);
 
             /*float angularResX = static_cast<float>(71.5f / (depth.get_width() * (M_PI / 180.0f)));
@@ -180,82 +182,152 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
 
             qDebug() << "before: " << pclPoints->points.size() << " after: " << cloudFiltered->points.size();
             qDebug() << "before: " << pclPoints->width << "x" << pclPoints->height << "after: " << cloudFiltered->width << "x" << cloudFiltered->height;
-            Eigen::Affine3f sensorPose = Eigen::Affine3f(
-                        Eigen::Translation3f(cloudFiltered->sensor_origin_[0],
-                        cloudFiltered->sensor_origin_[1],
+            curFrame++;
+            if(curFrame >= nrFrameShow) {
+                curFrame = 0;
+
+                Eigen::Affine3f sensorPose = Eigen::Affine3f(
+                            Eigen::Translation3f(cloudFiltered->sensor_origin_[0],
+                            cloudFiltered->sensor_origin_[1],
                         cloudFiltered->sensor_origin_[2])) *
-                    Eigen::Affine3f(cloudFiltered->sensor_orientation_);
-//            Eigen::Affine3f sensorPose = Eigen::Affine3f(
-//                        Eigen::Translation3f(pclPoints->sensor_origin_[0],
-//                        pclPoints->sensor_origin_[1],
-//                        pclPoints->sensor_origin_[2])) *
-//                    Eigen::Affine3f(pclPoints->sensor_orientation_);
-            qDebug()<<"Calculating KeyPoints";
-            qDebug()<<"*** Range image ***";
+                        Eigen::Affine3f(cloudFiltered->sensor_orientation_);
+                //            Eigen::Affine3f sensorPose = Eigen::Affine3f(
+                //                        Eigen::Translation3f(pclPoints->sensor_origin_[0],
+                //                        pclPoints->sensor_origin_[1],
+                //                        pclPoints->sensor_origin_[2])) *
+                //                    Eigen::Affine3f(pclPoints->sensor_orientation_);
+                qDebug()<<"Calculating KeyPoints";
+                qDebug()<<"*** Range image ***";
 
-            pcl::RangeImagePlanar rangeImage;
-            float riWidth = static_cast<float>(depth.get_width());
-            float riHeight = static_cast<float>(depth.get_height());
-            rangeImage.createFromPointCloudWithFixedSize(*cloudFiltered, riWidth, riHeight,
-                                                         riWidth * 0.5f, riHeight * 0.5f, fx, fy,
-                                                         sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel,
-                                                         minimumRange);
-            // Does this speed up the calculations?
-            // rangeImage.cropImage();
-//            pcl::RangeImage rangeImage;
-//            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
-//                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
-            emit newImage(rangeImageToQImage(rangeImage));
-            rangeImage.setUnseenToMaxRange();
-            qDebug()<<"Range Image size: "<<rangeImage.size();
-            pcl::RangeImageBorderExtractor extractor;
-            pcl::NarfKeypoint narfKeyPointDetector;
-            narfKeyPointDetector.setRangeImageBorderExtractor(&extractor);
-            narfKeyPointDetector.setRangeImage(&rangeImage);
-            narfKeyPointDetector.getParameters().support_size = 0.035f; //Defines the area 'covered' by an interest point (in meters)
-            narfKeyPointDetector.getParameters().calculate_sparse_interest_image = false;
-            narfKeyPointDetector.getParameters().max_no_of_threads = nrThreads;
-//            narfKeyPointDetector.getParameters().use_recursive_scale_reduction = true;
-            narfKeyPointDetector.setRadiusSearch(0.01f);
-            pcl::PointCloud<int> keypointIndices;
-            narfKeyPointDetector.compute(keypointIndices);
-            qDebug()<<"Detected "<<keypointIndices.points.size()<<"key points";
+                pcl::RangeImagePlanar rangeImage;
+                float riWidth = static_cast<float>(depth.get_width());
+                float riHeight = static_cast<float>(depth.get_height());
+                rangeImage.createFromPointCloudWithFixedSize(*cloudFiltered, riWidth, riHeight,
+                                                             riWidth * 0.5f, riHeight * 0.5f, fx, fy,
+                                                             sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel,
+                                                             minimumRange);
+                // Does this speed up the calculations?
+//                rangeImage.cropImage();
+                //            pcl::RangeImage rangeImage;
+                //            rangeImage.createFromPointCloud(*cloudFiltered, pcl::deg2rad (0.5f), pcl::deg2rad (360.0f), pcl::deg2rad (180.0f),
+                //                                            sensorPose, pcl::RangeImage::CAMERA_FRAME, 0.0, 0.0f, 1);
+                QImage viewRangeImage = rangeImageToQImage(rangeImage);
+                rangeImage.setUnseenToMaxRange();
+                qDebug()<<"Range Image size: "<<rangeImage.size();
+                pcl::RangeImageBorderExtractor extractor;
+                pcl::NarfKeypoint narfKeyPointDetector;
+                narfKeyPointDetector.setRangeImageBorderExtractor(&extractor);
+                narfKeyPointDetector.setRangeImage(&rangeImage);
+                narfKeyPointDetector.getParameters().support_size = 0.035f; //Defines the area 'covered' by an interest point (in meters)
+                //narfKeyPointDetector.getParameters().calculate_sparse_interest_image = false;
+                narfKeyPointDetector.getParameters().max_no_of_threads = nrThreads;
+                //            narfKeyPointDetector.getParameters().use_recursive_scale_reduction = true;
+                narfKeyPointDetector.setRadiusSearch(0.01f);
+                pcl::PointCloud<int> keypointIndices;
+                keypointIndices.sensor_origin_ = rangeImage.sensor_origin_;
+                keypointIndices.sensor_orientation_ = rangeImage.sensor_orientation_;
+                narfKeyPointDetector.compute(keypointIndices);
+                qDebug()<<"Detected "<<keypointIndices.points.size()<<"key points";
+                QColor narfColor = QColor::fromRgb(255,0,0);
+                for( unsigned int i=0; i < keypointIndices.points.size(); i++) {
+                    int curPoint = keypointIndices.points[i];
+                    int px = curPoint % rangeImage.width;
+                    int py = curPoint / rangeImage.width;
+                    qDebug()<<"setting pixel: "<<px<<", "<<py<<" of point "<<i<<", to color "<<narfColor;
+                    viewRangeImage.setPixelColor(px,py,narfColor);
 
-//            // Open a Visualizer to show keypoints
-//            pcl::visualization::RangeImageVisualizer viewer("NARF keypoints");
-//            viewer.showRangeImage(rangeImage);
-//            for (size_t i = 0; i < keypointIndices.points.size(); ++i)
-//            {
-//                viewer.markPoint(keypointIndices.points[i] % rangeImage.width,
-//                                 keypointIndices.points[i] / rangeImage.width,
-//                                 // Set the color of the pixel to red (the background
-//                                 // circle is already that color). All other parameters
-//                                 // are left untouched, check the API for more options.
-//                                 pcl::visualization::Vector3ub(1.0f, 0.0f, 0.0f));
-//            }
-//            while (!viewer.wasStopped())
-//            {
-//                viewer.spinOnce();
-//                // Sleep 100ms to go easy on the CPU.
-//                pcl_sleep(0.1);
-//            }
+                }
+                emit newImage(viewRangeImage);
 
-            // basic feature description estimation
-            std::vector<int> feKeypointIndices;
-            feKeypointIndices.resize(keypointIndices.size());
-            size_t keypointIndicesSize = keypointIndices.size();
-            for(unsigned int i=0;i<keypointIndicesSize;i++){
-                feKeypointIndices[i] = keypointIndices[i];
+                pcl::NarfKeypoint narfKeyPointDetector2;
+                narfKeyPointDetector2.setRangeImageBorderExtractor(&extractor);
+                narfKeyPointDetector2.setRangeImage(&rangeImage);
+                narfKeyPointDetector2.getParameters().support_size = 0.1f; //Defines the area 'covered' by an interest point (in meters)
+                //narfKeyPointDetector.getParameters().calculate_sparse_interest_image = false;
+                narfKeyPointDetector2.getParameters().max_no_of_threads = nrThreads;
+                //            narfKeyPointDetector.getParameters().use_recursive_scale_reduction = true;
+                narfKeyPointDetector2.setRadiusSearch(0.1f);
+
+                pcl::PointCloud<int> keypointIndices2;
+                keypointIndices2.sensor_origin_ = rangeImage.sensor_origin_;
+                keypointIndices2.sensor_orientation_ = rangeImage.sensor_orientation_;
+                narfKeyPointDetector2.compute(keypointIndices2);
+                qDebug()<<"Detected2 "<<keypointIndices2.points.size()<<"key points";
+
+//                pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+//                pcl::PointCloud<pcl::FPFHSignature33>::Ptr fphsDescriptors(new pcl::PointCloud<pcl::FPFHSignature33>);
+
+//                pcl::NormalEstimation<pcl::PointXYZ,pcl::Normal> normalEstimation;
+//                normalEstimation.setInputCloud(cloudFiltered);
+//                normalEstimation.setRadiusSearch(0.1f);
+
+//                pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
+//                normalEstimation.setSearchMethod(kdtree);
+//                normalEstimation.compute(*normals);
+
+//                    // FPFH estimation object.
+//                pcl::FPFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfh;
+//                fpfh.setInputCloud(cloudFiltered);
+//                fpfh.setInputNormals(normals);
+//                fpfh.setSearchMethod(kdtree);
+//                // Search radius, to look for neighbors. Note: the value given here has to be
+//                // larger than the radius used to estimate the normals.
+//                fpfh.setRadiusSearch(0.1);
+
+//                fpfh.compute(*fphsDescriptors);
+
+
+//                pcl::visualization::RangeImageVisualizer viewer("NARF keypoints");
+
+//                viewer.showRangeImage(rangeImage);
+
+
+//                for (size_t i = 0; i < keypointIndices.points.size(); ++i)
+//                {
+
+//                    viewer.markPoint(keypointIndices.points[i] % rangeImage.width,
+//                                     -(keypointIndices.points[i] / rangeImage.width) + rangeImage.height,
+//                                     // Set the color of the pixel to red (the background
+//                                     // circle is already that color). All other parameters
+//                                     // are left untouched, check the API for more options.
+//                                     pcl::visualization::Vector3ub(1.0f, 0.0f, 0.0f));
+//                }
+
+//                for (size_t i = 0; i < keypointIndices2.points.size(); ++i)
+//                {
+//                    viewer.markPoint(keypointIndices2.points[i] % rangeImage.width,
+//                                     -(keypointIndices2.points[i] / rangeImage.width) + rangeImage.height,
+//                                     // Set the color of the pixel to red (the background
+//                                     // circle is already that color). All other parameters
+//                                     // are left untouched, check the API for more options.
+//                                     pcl::visualization::Vector3ub(0.0f, 1.0f, 0.0f),
+//                                     pcl::visualization::Vector3ub(0.0f, 1.0f, 0.0f));
+//                }
+
+//                while (!viewer.wasStopped())
+//                {
+//                    viewer.spinOnce();
+//                    // Sleep 100ms to go easy on the CPU.
+//                    pcl_sleep(0.1);
+//                }
+                // basic feature description estimation
+                std::vector<int> feKeypointIndices;
+                feKeypointIndices.resize(keypointIndices.size());
+                size_t keypointIndicesSize = keypointIndices.size();
+                for(unsigned int i=0;i<keypointIndicesSize;i++){
+                    feKeypointIndices[i] = keypointIndices[i];
+                }
+                //pcl::RangeImage::ConstPtr constRangeImagePtr(&rangeImage);
+                pcl::NarfDescriptor narfDescriptor;
+                //narfDescriptor.setRangeImage(constRangeImagePtr.get(),&feKeypointIndices);
+                narfDescriptor.setRangeImage(&rangeImage,&feKeypointIndices);
+                narfDescriptor.getParameters().support_size = 0.03f;
+                narfDescriptor.getParameters().rotation_invariant = true;
+                pcl::PointCloud<pcl::Narf36> narfDescriptors; //pcl::Narf36 -> struct representing Narf descriptor
+                narfDescriptor.compute(narfDescriptors);
+
+                qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
             }
-            //pcl::RangeImage::ConstPtr constRangeImagePtr(&rangeImage);
-            pcl::NarfDescriptor narfDescriptor;
-            //narfDescriptor.setRangeImage(constRangeImagePtr.get(),&feKeypointIndices);
-            narfDescriptor.setRangeImage(&rangeImage,&feKeypointIndices);
-            narfDescriptor.getParameters().support_size = 0.03f;
-            narfDescriptor.getParameters().rotation_invariant = true;
-            pcl::PointCloud<pcl::Narf36> narfDescriptors; //pcl::Narf36 -> struct representing Narf descriptor
-            narfDescriptor.compute(narfDescriptors);
-            qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
             {
                 QMutexLocker locker(&m_mutex);
                 if (m_stopped)
