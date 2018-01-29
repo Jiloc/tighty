@@ -5,11 +5,13 @@
 #include <pcl/features/narf.h>
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/features/narf_descriptor.h>
+#include <pcl/registration/correspondence_estimation.h>
 #include <QDebug>
 //#include <QImage>
 #include "utils/customrangeimagepainter.h"
 #include <QThread>
 
+using PCLPoint = pcl::PointCloud<pcl::PointXYZ>;
 
 void getColorForFloat (float value,
                        uchar& r, uchar& g, uchar& b)
@@ -161,6 +163,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
     int nrThreads = QThread::idealThreadCount() - 1;
     static int curFrame = 0;
     const int nrFrameShow = 9;
+    PCLPoint::Ptr lastPointCloud;
     try
     {
         while(true)
@@ -337,6 +340,8 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                 narfDescriptor.compute(narfDescriptors);
 
                 qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
+                pcl::registration::CorrespondenceEstimation<pcl::Narf36,pcl::Narf36> estimation;
+                //estimation.setInputCloud(narfDescriptors);
             }
             {
                 QMutexLocker locker(&m_mutex);
