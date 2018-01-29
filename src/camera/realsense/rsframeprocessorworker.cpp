@@ -5,7 +5,6 @@
 #include <pcl/features/narf.h>
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/features/narf_descriptor.h>
-#include <pcl/visualization/range_image_visualizer.h>
 #include <QDebug>
 //#include <QImage>
 #include "utils/customrangeimagepainter.h"

@@ -13,7 +13,7 @@ class RSCameraManager: public QObject
 {
     Q_OBJECT
 public:
-    RSCameraManager::RSCameraManager();
+    RSCameraManager();
     void setup();
     const int getConnectedDevicesSize();
 private:
