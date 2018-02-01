@@ -9,13 +9,13 @@ Installing Homebrew is encouraged, for instruction see [Homebrew Home Page](http
     ```
     brew install pkg-config
     ```
-* Install required 3d praty libraries library
+* Install required 3d party libraries library
      ```
     brew install boost flann pcl eigen
     ```
-* Install librealsense sdk
-* Make sure that PKG_CONFIG_PATH variable is set correctly
-    es: 
+* ~~Install librealsense sdk~~ A realsense build is included in src/3rdParty/librealsense/macos
+
+* Make sure that PKG_CONFIG_PATH variable is set correctly, example: 
     ```
     pkg-config --cflags --libs flann
     ```
