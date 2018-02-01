@@ -97,7 +97,7 @@ LIBREALSENSE_DIR=$$shell_path($$THIRD_PARTY_DIR/librealsense/2.9.1a_no_OMP)
 
 }
 unix {
-    PKGCONFIG += boost flann eigen3 pcl_common-1.8 pcl_filters-1.8 pcl_features-1.8 pcl_keypoints-1.8
+    PKGCONFIG += boost flann eigen3 pcl_common-1.8 pcl_filters-1.8 pcl_features-1.8 pcl_keypoints-1.8 pcl_registration-1.8
     debug {
         PKGCONFIG += realsense2-debug
     }

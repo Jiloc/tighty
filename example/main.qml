@@ -50,8 +50,8 @@ Window {
 
         VideoPlayer{
             id: rawStream
-            width: 640
-            height: 480
+            width: parent.width * 0.4//640
+            height: parent.height * 0.8//480
             z: 1
             visible: true
             anchors.left: parent.left
@@ -60,8 +60,8 @@ Window {
 
         VideoPlayer{
             id: filteredStream
-            width: 640
-            height: 480
+            width: parent.width * 0.4//640
+            height: parent.height * 0.8//480
             z: 1
             visible: true
             anchors.right: parent.right

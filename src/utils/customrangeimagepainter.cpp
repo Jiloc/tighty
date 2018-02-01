@@ -29,7 +29,7 @@ void CustomRangeImagePainter::setPixelSize(int newSize) {
 void CustomRangeImagePainter::markPoints(const KeyPointIndices& points,pcl::RangeImage& rangeImage, const QColor &color) {
     if(points.size() <=0){
 //#ifdef QT_DEBUG
-        qDebug()<<"skipping markPoints because vector<int> points id <=0";
+        //qDebug()<<"skipping markPoints because vector<int> points id <=0";
 //#endif
         return;
     }
