@@ -12,6 +12,7 @@
 //#include <QImage>
 #include "utils/customrangeimagepainter.h"
 #include <QThread>
+#include <sstream>
 
 using PCLPoint = pcl::PointCloud<pcl::PointXYZ>;
 
@@ -397,7 +398,11 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                     transform = rejector.getBestTransformation();
 
                     qDebug()<<"\t Correspondences found after RANSAC: "<<correspondecesFiltered->size();
-                    qDebug()<<"\t Transform Matrix: "<<transform.data();
+                    Eigen::IOFormat matrixFormat(4,0,", ","\n","[","]");
+                    std::stringstream stream;
+                    stream<<Eigen::WithFormat<Eigen::Matrix4f>(transform,matrixFormat);
+                    //must convert from std::string (str() to char* c_str()) to properly display \n
+                    qDebug()<<"\t Transform Matrix:\n"<<stream.str().c_str();
                     lastFeatures->clear();
                 }
                 else {
