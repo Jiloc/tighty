@@ -163,7 +163,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
     int nrThreads = QThread::idealThreadCount() - 1;
     static int curFrame = 0;
     const int nrFrameShow = 9;
-    PCLPoint::Ptr lastPointCloud;
+    pcl::PointCloud<pcl::Narf36>::Ptr lastFeatures(new pcl::PointCloud<pcl::Narf36>());
     try
     {
         while(true)
@@ -338,10 +338,35 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                 narfDescriptor.getParameters().rotation_invariant = true;
                 pcl::PointCloud<pcl::Narf36> narfDescriptors; //pcl::Narf36 -> struct representing Narf descriptor
                 narfDescriptor.compute(narfDescriptors);
-
                 qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
-                pcl::registration::CorrespondenceEstimation<pcl::Narf36,pcl::Narf36> estimation;
-                //estimation.setInputCloud(narfDescriptors);
+                if(lastFeatures->size() > 0) {
+                    qDebug()<<"finding corrispondence with previous narf keypoints...";
+                    std::vector<int> corr_out;
+                    std::vector<float> corr_scores_out;
+                    corr_out.resize(narfDescriptors.size());
+                    corr_scores_out.resize(narfDescriptors.size());
+                    pcl::search::KdTree<pcl::Narf36> desc_kdtree;
+                    desc_kdtree.setInputCloud(lastFeatures);
+                    const int k = 3;
+                    std::vector<int> k_indices(k);
+                    std::vector<float> k_sq_dist(k);
+                    qDebug()<<"finding k nearest neighbours with k: "<<k;
+                    for(size_t i = 0; i<narfDescriptors.size();i++) {
+                        desc_kdtree.nearestKSearch(narfDescriptors,i,k,k_indices,k_sq_dist);
+                        corr_out[i] = k_indices[0];
+                        corr_scores_out[i] = k_sq_dist[0];
+                    }
+                    for(int i: corr_out) {
+                        qDebug()<<"\t** feature descriptor # "<<i<<", found "<<corr_out[i]<<" correspondences:";
+//                        for(auto j:)
+                    }
+
+                    lastFeatures->clear();
+                }
+                else {
+                    qDebug()<<"\t*** no previous feature descriptors found";
+                }
+                pcl::copyPointCloud(narfDescriptors,*lastFeatures);
             }
             {
                 QMutexLocker locker(&m_mutex);

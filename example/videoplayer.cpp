@@ -6,9 +6,6 @@ VideoPlayer::VideoPlayer() : QQuickPaintedItem() {}
 void VideoPlayer::paint(QPainter *painter) {
     int devicePixelRatio = painter->device()->devicePixelRatio();
     QSize imageSize(painter->device()->width() / devicePixelRatio, painter->device()->height() / devicePixelRatio);
-#ifdef QT_DEBUG
-    qDebug()<<"[VideoPlayer] painting image with size: "<<imageSize<<", pixelRatio: "<<devicePixelRatio;
-#endif
     //this->image = image.scaled(painter->device()->width(), painter->device()->height(), Qt::KeepAspectRatio);
     this->image = image.scaled(imageSize);//,Qt::KeepAspectRatio);
     QRect rect(this->image.rect());
