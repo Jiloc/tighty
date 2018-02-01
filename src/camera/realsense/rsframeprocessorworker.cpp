@@ -6,6 +6,8 @@
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/features/narf_descriptor.h>
 #include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_rejection_one_to_one.h>
+#include <pcl/registration/correspondence_rejection_sample_consensus.h>
 #include <QDebug>
 //#include <QImage>
 #include "utils/customrangeimagepainter.h"
@@ -163,7 +165,11 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
     int nrThreads = QThread::idealThreadCount() - 1;
     static int curFrame = 0;
     const int nrFrameShow = 9;
+    // save last frame narf features
     pcl::PointCloud<pcl::Narf36>::Ptr lastFeatures(new pcl::PointCloud<pcl::Narf36>());
+    // save last frame point cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr lastPointCloud(new pcl::PointCloud<pcl::PointXYZ>());
+
     try
     {
         while(true)
@@ -336,37 +342,69 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                 narfDescriptor.setRangeImage(&rangeImage,&feKeypointIndices);
                 narfDescriptor.getParameters().support_size = 0.03f;
                 narfDescriptor.getParameters().rotation_invariant = true;
-                pcl::PointCloud<pcl::Narf36> narfDescriptors; //pcl::Narf36 -> struct representing Narf descriptor
-                narfDescriptor.compute(narfDescriptors);
-                qDebug()<<"extracted "<<narfDescriptors.size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
+                //pcl::PointCloud<pcl::Narf36> narfDescriptors; //pcl::Narf36 -> struct representing Narf descriptor
+                pcl::PointCloud<pcl::Narf36>::Ptr narfDescriptors(new pcl::PointCloud<pcl::Narf36>());
+                narfDescriptor.compute(*narfDescriptors);
+                qDebug()<<"extracted "<<narfDescriptors->size()<<" features for "<<keypointIndices.points.size()<<" keypoints";
                 if(lastFeatures->size() > 0) {
-                    qDebug()<<"finding corrispondence with previous narf keypoints...";
-                    std::vector<int> corr_out;
-                    std::vector<float> corr_scores_out;
-                    corr_out.resize(narfDescriptors.size());
-                    corr_scores_out.resize(narfDescriptors.size());
-                    pcl::search::KdTree<pcl::Narf36> desc_kdtree;
-                    desc_kdtree.setInputCloud(lastFeatures);
-                    const int k = 3;
-                    std::vector<int> k_indices(k);
-                    std::vector<float> k_sq_dist(k);
-                    qDebug()<<"finding k nearest neighbours with k: "<<k;
-                    for(size_t i = 0; i<narfDescriptors.size();i++) {
-                        desc_kdtree.nearestKSearch(narfDescriptors,i,k,k_indices,k_sq_dist);
-                        corr_out[i] = k_indices[0];
-                        corr_scores_out[i] = k_sq_dist[0];
-                    }
-                    for(int i: corr_out) {
-                        qDebug()<<"\t** feature descriptor # "<<i<<", found "<<corr_out[i]<<" correspondences:";
-//                        for(auto j:)
-                    }
+//                    qDebug()<<"finding corrispondence with previous narf keypoints...";
+//                    std::vector<int> corr_out;
+//                    std::vector<float> corr_scores_out;
+//                    corr_out.resize(narfDescriptors.size());
+//                    corr_scores_out.resize(narfDescriptors.size());
+//                    pcl::search::KdTree<pcl::Narf36> desc_kdtree;
+//                    desc_kdtree.setInputCloud(lastFeatures);
+//                    const int k = 3;
+//                    std::vector<int> k_indices(k);
+//                    std::vector<float> k_sq_dist(k);
+//                    qDebug()<<"finding k nearest neighbours with k: "<<k;
+//                    for(size_t i = 0; i<narfDescriptors.size();i++) {
+//                        desc_kdtree.nearestKSearch(narfDescriptors,i,k,k_indices,k_sq_dist);
+//                        corr_out[i] = k_indices[0];
+//                        corr_scores_out[i] = k_sq_dist[0];
+//                    }
+//                    for(int i: corr_out) {
+//                        qDebug()<<"\t** feature descriptor # "<<i<<", found "<<corr_out[i]<<" correspondences:";
+////                        for(auto j:)
+//                    }
+                    pcl::registration::CorrespondenceEstimation<pcl::Narf36,pcl::Narf36> estimation;
+                    pcl::CorrespondencesPtr correspondences(new pcl::Correspondences());
+                    estimation.setInputCloud(narfDescriptors);
+                    estimation.setInputTarget(lastFeatures);
+                    estimation.determineCorrespondences(*correspondences);
 
+                    qDebug()<<"\t** Correspondences found (before rejection): "<<correspondences->size();
+                    // Duplication rejection
+                    pcl::CorrespondencesPtr correspondencesAfterDupRej(new pcl::Correspondences());
+                    pcl::registration::CorrespondenceRejectorOneToOne corrRejOneToOne;
+                    corrRejOneToOne.setInputCorrespondences(correspondences);
+                    corrRejOneToOne.getCorrespondences(*correspondencesAfterDupRej);
+
+                    qDebug()<<"\t** Correspondences found (After Duplication rejection): "<<correspondencesAfterDupRej->size();
+
+                    // Correspondeces rejection RANSAC
+                    // pcl source -> target final transform, initialized with identity matrix
+                    Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+                    pcl::registration::CorrespondenceRejectorSampleConsensus<pcl::PointXYZ> rejector;
+                    pcl::CorrespondencesPtr correspondecesFiltered(new pcl::Correspondences());
+                    rejector.setInputCloud(cloudFiltered);
+                    rejector.setInputTarget(lastPointCloud);
+                    rejector.setInlierThreshold(0.30); // distance in m, TODO see SampleConsensus parameters
+                    rejector.setMaximumIterations(1000000);
+                    rejector.setRefineModel(false);
+                    rejector.setInputCorrespondences(correspondencesAfterDupRej);
+                    rejector.getCorrespondences(*correspondecesFiltered);
+                    transform = rejector.getBestTransformation();
+
+                    qDebug()<<"\t Correspondences found after RANSAC: "<<correspondecesFiltered->size();
+                    qDebug()<<"\t Transform Matrix: "<<transform.data();
                     lastFeatures->clear();
                 }
                 else {
                     qDebug()<<"\t*** no previous feature descriptors found";
                 }
-                pcl::copyPointCloud(narfDescriptors,*lastFeatures);
+                lastPointCloud = cloudFiltered;
+                pcl::copyPointCloud(*narfDescriptors,*lastFeatures);
             }
             {
                 QMutexLocker locker(&m_mutex);
