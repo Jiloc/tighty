@@ -1,0 +1,14 @@
+#!/bin/sh
+QT_DIR=~/Qt
+QT_CREATOR="Qt Creator.app"
+QT_CREATOR_PATH="${QT_DIR}/${QT_CREATOR}"
+
+function err_exit {
+        echo "$@"
+        exit 1
+}
+
+[[ -x /usr/bin/open ]] || err_exit "cannot find open"
+[[ -d ${QT_CREATOR_PATH} ]] || err_exit "cannot find Qt Creator.app"
+
+/usr/bin/open "${QT_CREATOR_PATH}"

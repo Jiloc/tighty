@@ -102,7 +102,7 @@ unix {
         PKGCONFIG += realsense2-debug
     }
     else {
-        PKG_CONFIG += realsense2
+        PKGCONFIG +=  realsense2
     }
 }
 

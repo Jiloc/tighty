@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+boost_ver=1.66.0
+prefix=/usr/local/Cellar/boost/${boost_ver}
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir_old=${prefix}/include/boost
+includedir_new=${prefix}/include
+
+Name: Boost
+Description: Boost Libraries v 1.66.0
+Version: 1.66.0
+Libs: -L${exec_prefix}/lib  -lboost_container-mt -lboost_test_exec_monitor -lboost_regex -lboost_math_c99f -lboost_math_tr1l -lboost_prg_exec_monitor-mt -lboost_serialization-mt -lboost_graph-mt -lboost_stacktrace_noop-mt -lboost_system -lboost_filesystem-mt -lboost_iostreams -lboost_chrono -lboost_stacktrace_addr2line-mt -lboost_type_erasure -lboost_prg_exec_monitor -lboost_wserialization-mt -lboost_coroutine -lboost_stacktrace_basic -lboost_type_erasure-mt -lboost_regex-mt -lboost_math_c99-mt -lboost_program_options -lboost_wserialization -lboost_signals-mt -lboost_stacktrace_addr2line -lboost_exception-mt -lboost_thread-mt -lboost_container -lboost_math_tr1 -lboost_math_c99f-mt -lboost_exception -lboost_math_tr1l-mt -lboost_wave-mt -lboost_iostreams-mt -lboost_locale-mt -lboost_math_tr1-mt -lboost_date_time-mt -lboost_log-mt -lboost_program_options-mt -lboost_date_time -lboost_stacktrace_noop -lboost_signals -lboost_math_c99l-mt -lboost_math_c99l -lboost_graph -lboost_math_c99 -lboost_unit_test_framework-mt -lboost_math_tr1f -lboost_system-mt -lboost_log_setup-mt -lboost_random-mt -lboost_unit_test_framework -lboost_context-mt -lboost_stacktrace_basic-mt -lboost_fiber-mt -lboost_log_setup -lboost_log -lboost_timer-mt -lboost_serialization -lboost_atomic-mt -lboost_math_tr1f-mt -lboost_random -lboost_test_exec_monitor-mt -lboost_timer -lboost_filesystem -lboost_coroutine-mt -lboost_chrono-mt
+Cflags: -I${includedir_old} -I${includedir_new}
