@@ -8,6 +8,7 @@
 #include <pcl/registration/correspondence_estimation.h>
 #include <pcl/registration/correspondence_rejection_one_to_one.h>
 #include <pcl/registration/correspondence_rejection_sample_consensus.h>
+#include <pcl/registration/transformation_estimation_svd.h>
 #include <QDebug>
 //#include <QImage>
 #include "utils/customrangeimagepainter.h"
@@ -217,6 +218,8 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                                                              riWidth * 0.5f, riHeight * 0.5f, fx, fy,
                                                              sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel,
                                                              minimumRange);
+
+
                 // Does this speed up the calculations?
 //                rangeImage.cropImage();
                 //            pcl::RangeImage rangeImage;
@@ -370,7 +373,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
 //                    }
                     pcl::registration::CorrespondenceEstimation<pcl::Narf36,pcl::Narf36> estimation;
                     pcl::CorrespondencesPtr correspondences(new pcl::Correspondences());
-                    estimation.setInputCloud(narfDescriptors);
+                    estimation.setInputSource(narfDescriptors);
                     estimation.setInputTarget(lastFeatures);
                     estimation.determineCorrespondences(*correspondences);
 
@@ -388,7 +391,7 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                     Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
                     pcl::registration::CorrespondenceRejectorSampleConsensus<pcl::PointXYZ> rejector;
                     pcl::CorrespondencesPtr correspondecesFiltered(new pcl::Correspondences());
-                    rejector.setInputCloud(cloudFiltered);
+                    rejector.setInputSource(cloudFiltered);
                     rejector.setInputTarget(lastPointCloud);
                     rejector.setInlierThreshold(0.30); // distance in m, TODO see SampleConsensus parameters
                     rejector.setMaximumIterations(1000000);
@@ -403,6 +406,13 @@ void RSFrameProcessorWorker::doWork(float fx, float fy)
                     stream<<Eigen::WithFormat<Eigen::Matrix4f>(transform,matrixFormat);
                     //must convert from std::string (str() to char* c_str()) to properly display \n
                     qDebug()<<"\t Transform Matrix:\n"<<stream.str().c_str();
+                    // TransformationEstimationSVD
+                    pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ> svd;
+                    svd.estimateRigidTransformation(*cloudFiltered,*lastPointCloud,*correspondecesFiltered,transform);
+                    //svd.estimateRigidTransformation();
+                    std::stringstream stream2;
+                    stream2<<Eigen::WithFormat<Eigen::Matrix4f>(transform,matrixFormat);
+                    qDebug()<<"\t Transform Matrix after TransformationEstimationSVD:\n"<<stream2.str().c_str();
                     lastFeatures->clear();
                 }
                 else {
